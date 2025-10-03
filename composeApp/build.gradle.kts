@@ -17,6 +17,7 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
+            implementation(compose.materialIconsExtended)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
@@ -34,6 +35,8 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
             implementation("org.apache.commons:commons-compress:1.23.0")
+
+            implementation("io.github.kdroidfilter:composenativetray:0.9.4")
         }
     }
 }
