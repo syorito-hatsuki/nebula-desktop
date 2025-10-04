@@ -26,6 +26,9 @@ jobs:
           VERSION=$(grep -E '^val version\s*=' composeApp/build.gradle.kts | sed -E 's/.*"([^"]+)".*/\1/')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: "Debug: print extracted version"
+        run: echo "Gradle version = ${{ steps.version.outputs.version }}"
+
       - name: Build Linux native distributions
         run: ./gradlew :composeApp:packageReleaseDistributionForCurrentOS
 
