@@ -49,12 +49,32 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "dev.syoritohatsuki.nebula_desktop.MainKt"
+Di        mainClass = "dev.syoritohatsuki.nebuladesktop.MainKt"
+
+        buildTypes.release {
+            proguard { isEnabled = false }
+        }
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Exe, TargetFormat.AppImage)
-            packageName = "dev.syoritohatsuki.nebula_desktop"
-            packageVersion = "1.0.0"
+            targetFormats(
+                *setOf(
+                    TargetFormat.AppImage,
+                    TargetFormat.Deb,
+                    TargetFormat.Dmg,
+                    TargetFormat.Exe,
+                    TargetFormat.Msi,
+                    TargetFormat.Pkg,
+                    TargetFormat.Rpm,
+                ).toTypedArray()
+            )
+
+            val version = "2025.10.1"
+            packageVersion = version
+            packageName = "dev.syoritohatsuki.nebuladesktop"
+
+            windows {
+                packageVersion = version.substring(2)
+            }
         }
     }
 }
