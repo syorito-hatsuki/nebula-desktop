@@ -22,15 +22,11 @@ jobs:
       - name: Build Linux native distributions
         run: ./gradlew :composeApp:packageReleaseDistributionForCurrentOS
 
-      - name: List built files
-        working-directory: composeApp
-        run: ls -R build/compose/binaries/main-release
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: nebula-desktop-linux
           path: |
-            build/compose/binaries/main-release/deb/
-            build/compose/binaries/main-release/rpm/
-            build/compose/binaries/main-release/app/
+            composeApp/build/compose/binaries/main-release/deb/
+            composeApp/build/compose/binaries/main-release/rpm/
+            composeApp/build/compose/binaries/main-release/app/
