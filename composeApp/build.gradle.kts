@@ -37,6 +37,11 @@ kotlin {
             implementation("org.apache.commons:commons-compress:1.23.0")
 
             implementation("io.github.kdroidfilter:composenativetray:0.9.4")
+
+            val version = "0.11.0"
+            implementation("io.github.vinceglb:filekit-core:${version}")
+            implementation("io.github.vinceglb:filekit-dialogs:${version}")
+            implementation("io.github.vinceglb:filekit-dialogs-compose:${version}")
         }
     }
 }
