@@ -1,4 +1,4 @@
-rootProject.name = "nebula_desktop"
+rootProject.name = "nebula-desktop"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
