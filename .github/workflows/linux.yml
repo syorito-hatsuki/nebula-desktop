@@ -36,4 +36,6 @@ jobs:
           tag_name: ${{ steps.version.outputs.version }}
           files: |
             composeApp/build/compose/binaries/main-release/deb/*.deb
-            composeApp/build/compose/binaries/main-release/rpm/*.rpm
+            composeApp/build/compose/binaries/main-release/rpm/*.rpm        
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
