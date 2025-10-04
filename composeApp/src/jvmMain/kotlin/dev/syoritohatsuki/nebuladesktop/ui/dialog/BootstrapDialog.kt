@@ -1,4 +1,4 @@
-package dev.syoritohatsuki.nebula_desktop.ui.dialog
+package dev.syoritohatsuki.nebuladesktop.ui.dialog
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.LinearProgressIndicator
@@ -9,12 +9,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.syoritohatsuki.nebula_desktop.api.GithubApi
-import dev.syoritohatsuki.nebula_desktop.network.downloadFile
-import dev.syoritohatsuki.nebula_desktop.util.StorageManager.nebulaBinaryDirPath
-import dev.syoritohatsuki.nebula_desktop.util.StorageManager.nebulaBinaryPath
-import dev.syoritohatsuki.nebula_desktop.util.extractTarGz
-import dev.syoritohatsuki.nebula_desktop.util.extractZip
+import dev.syoritohatsuki.nebuladesktop.api.GithubApi
+import dev.syoritohatsuki.nebuladesktop.network.downloadFile
+import dev.syoritohatsuki.nebuladesktop.util.StorageManager.nebulaBinaryDirPath
+import dev.syoritohatsuki.nebuladesktop.util.StorageManager.nebulaBinaryPath
+import dev.syoritohatsuki.nebuladesktop.util.extractTarGz
+import dev.syoritohatsuki.nebuladesktop.util.extractZip
 import kotlinx.coroutines.launch
 
 @Composable

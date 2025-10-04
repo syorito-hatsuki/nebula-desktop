@@ -1,4 +1,4 @@
-package dev.syoritohatsuki.nebula_desktop.ui
+package dev.syoritohatsuki.nebuladesktop.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,8 +18,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.ApplicationScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kdroid.composetray.tray.api.Tray
-import dev.syoritohatsuki.nebula_desktop.dto.NebulaConnection
-import dev.syoritohatsuki.nebula_desktop.ui.main.MainWindowViewModel
+import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection
+import dev.syoritohatsuki.nebuladesktop.ui.main.MainWindowViewModel
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 

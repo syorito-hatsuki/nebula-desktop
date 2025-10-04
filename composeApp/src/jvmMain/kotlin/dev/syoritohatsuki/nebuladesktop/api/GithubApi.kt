@@ -1,6 +1,6 @@
-package dev.syoritohatsuki.nebula_desktop.api
+package dev.syoritohatsuki.nebuladesktop.api
 
-import dev.syoritohatsuki.nebula_desktop.dto.github.GithubRelease
+import dev.syoritohatsuki.nebuladesktop.dto.github.GithubRelease
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*

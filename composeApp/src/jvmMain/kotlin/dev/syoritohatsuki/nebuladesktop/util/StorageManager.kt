@@ -1,4 +1,4 @@
-package dev.syoritohatsuki.nebula_desktop.util
+package dev.syoritohatsuki.nebuladesktop.util
 
 import java.nio.file.Path
 

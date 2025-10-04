@@ -1,4 +1,4 @@
-package dev.syoritohatsuki.nebula_desktop.network
+package dev.syoritohatsuki.nebuladesktop.network
 
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*

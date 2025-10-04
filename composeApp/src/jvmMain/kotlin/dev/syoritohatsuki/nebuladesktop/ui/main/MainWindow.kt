@@ -1,4 +1,4 @@
-package dev.syoritohatsuki.nebula_desktop.ui.main
+package dev.syoritohatsuki.nebuladesktop.ui.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,7 +25,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.syoritohatsuki.nebula_desktop.dto.NebulaConnection
+import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 

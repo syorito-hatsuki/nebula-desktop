@@ -1,6 +1,6 @@
-package dev.syoritohatsuki.nebula_desktop.util
+package dev.syoritohatsuki.nebuladesktop.util
 
-import dev.syoritohatsuki.nebula_desktop.dto.NebulaConnection
+import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

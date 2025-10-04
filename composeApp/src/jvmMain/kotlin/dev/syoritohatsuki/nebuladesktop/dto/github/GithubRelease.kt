@@ -1,4 +1,4 @@
-package dev.syoritohatsuki.nebula_desktop.dto.github
+package dev.syoritohatsuki.nebuladesktop.dto.github
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

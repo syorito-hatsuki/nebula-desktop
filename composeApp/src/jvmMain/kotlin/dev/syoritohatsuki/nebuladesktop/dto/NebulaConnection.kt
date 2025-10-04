@@ -1,4 +1,4 @@
-package dev.syoritohatsuki.nebula_desktop.dto
+package dev.syoritohatsuki.nebuladesktop.dto
 
 import kotlinx.coroutines.flow.MutableSharedFlow
 import java.nio.file.Path

@@ -1,8 +1,8 @@
-package dev.syoritohatsuki.nebula_desktop.ui.main
+package dev.syoritohatsuki.nebuladesktop.ui.main
 
 import androidx.lifecycle.ViewModel
-import dev.syoritohatsuki.nebula_desktop.dto.NebulaConnection
-import dev.syoritohatsuki.nebula_desktop.util.NebulaManager
+import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection
+import dev.syoritohatsuki.nebuladesktop.util.NebulaManager
 
 class MainWindowViewModel() : ViewModel() {
 

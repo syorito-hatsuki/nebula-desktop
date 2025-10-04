@@ -1,4 +1,4 @@
-package dev.syoritohatsuki.nebula_desktop.util
+package dev.syoritohatsuki.nebuladesktop.util
 
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream

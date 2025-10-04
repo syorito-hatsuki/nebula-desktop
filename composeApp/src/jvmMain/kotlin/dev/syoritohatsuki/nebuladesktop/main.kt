@@ -1,4 +1,4 @@
-package dev.syoritohatsuki.nebula_desktop
+package dev.syoritohatsuki.nebuladesktop
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Shield
@@ -11,11 +11,11 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.kdroid.composetray.utils.SingleInstanceManager
-import dev.syoritohatsuki.nebula_desktop.ui.MainTray
-import dev.syoritohatsuki.nebula_desktop.ui.dialog.NebulaDownloadDialog
-import dev.syoritohatsuki.nebula_desktop.ui.main.MainWindow
-import dev.syoritohatsuki.nebula_desktop.ui.main.MainWindowViewModel
-import dev.syoritohatsuki.nebula_desktop.util.StorageManager
+import dev.syoritohatsuki.nebuladesktop.ui.MainTray
+import dev.syoritohatsuki.nebuladesktop.ui.dialog.NebulaDownloadDialog
+import dev.syoritohatsuki.nebuladesktop.ui.main.MainWindow
+import dev.syoritohatsuki.nebuladesktop.ui.main.MainWindowViewModel
+import dev.syoritohatsuki.nebuladesktop.util.StorageManager
 import java.awt.Frame
 
 fun main() = application {
