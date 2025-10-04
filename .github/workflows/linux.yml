@@ -1,0 +1,35 @@
+name: Linux Release
+
+on:
+  push:
+
+  workflow_dispatch:
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Build Linux native distributions
+        run: ./gradlew :composeApp:packageReleaseDistributionForCurrentOS
+
+      - name: List built files
+        run: ls -R build/compose/binaries/main-release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nebula-desktop-linux
+          path: |
+            build/compose/binaries/main-release/deb/
+            build/compose/binaries/main-release/rpm/
+            build/compose/binaries/main-release/app/
