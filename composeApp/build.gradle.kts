@@ -49,7 +49,7 @@ kotlin {
 
 compose.desktop {
     application {
-Di        mainClass = "dev.syoritohatsuki.nebuladesktop.MainKt"
+        mainClass = "dev.syoritohatsuki.nebuladesktop.MainKt"
 
         buildTypes.release {
             proguard { isEnabled = false }
