@@ -9,19 +9,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.syoritohatsuki.nebula_desktop.dto.github.GithubRelease
-import dev.syoritohatsuki.nebula_desktop.util.*
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.serialization.kotlinx.json.*
+import dev.syoritohatsuki.nebula_desktop.api.GithubApi
+import dev.syoritohatsuki.nebula_desktop.network.downloadFile
+import dev.syoritohatsuki.nebula_desktop.util.StorageManager.nebulaBinaryDirPath
+import dev.syoritohatsuki.nebula_desktop.util.StorageManager.nebulaBinaryPath
+import dev.syoritohatsuki.nebula_desktop.util.extractTarGz
+import dev.syoritohatsuki.nebula_desktop.util.extractZip
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 
 @Composable
-fun BootstrapDialog(onClose: () -> Unit) {
+fun NebulaDownloadDialog(onClose: () -> Unit) {
     var progressText by remember { mutableStateOf("Starting...") }
     var progress by remember { mutableStateOf(0.0) }
     var done by remember { mutableStateOf(false) }
@@ -31,6 +28,22 @@ fun BootstrapDialog(onClose: () -> Unit) {
     val scope = rememberCoroutineScope()
 
     fun startBootstrap() {
+
+        fun getReleaseNameForPlatform(): String {
+            val os = System.getProperty("os.name").lowercase()
+            val arch = System.getProperty("os.arch").lowercase()
+            return when {
+                os.contains("win") -> "windows-amd64.zip"
+                os.contains("mac") -> when {
+                    arch.contains("aarch64") || arch.contains("arm") -> "darwin-arm64.zip"
+                    else -> "darwin-amd64.zip"
+                }
+
+                os.contains("nux") || os.contains("linux") -> "linux-amd64.tar.gz"
+                else -> error("Unsupported OS")
+            }
+        }
+
         scope.launch {
             try {
                 errorMessage = null
@@ -38,12 +51,12 @@ fun BootstrapDialog(onClose: () -> Unit) {
                 progress = 0.0
                 progressText = "Fetching latest release..."
 
-                val targetDir = getNebulaBinDir()
+                val targetDir = nebulaBinaryDirPath
                 targetDir.toFile().mkdirs()
 
-                val release = fetchLatestNebulaRelease()
-                val platformAsset = release.assets.firstOrNull { it.name.contains(getPlatform()) }
-                    ?: error("No suitable asset for ${getPlatform()}")
+                val release = GithubApi.fetchLatestRelease("slackhq/nebula")
+                val platformAsset = release.assets.firstOrNull { it.name.contains(getReleaseNameForPlatform()) }
+                    ?: error("No suitable asset for ${getReleaseNameForPlatform()}")
 
                 val archiveFile = targetDir.resolve(platformAsset.name)
                 progressText = "Downloading ${platformAsset.name}..."
@@ -55,7 +68,7 @@ fun BootstrapDialog(onClose: () -> Unit) {
                     platformAsset.name.endsWith(".tar.gz") -> extractTarGz(archiveFile, targetDir) { p -> progress = p }
                 }
 
-                val binary = getNebulaBinaryPath()
+                val binary = nebulaBinaryPath
                 binary.toFile().setExecutable(true)
 
                 progressText = "Done! Binary at $binary"
@@ -90,14 +103,4 @@ fun BootstrapDialog(onClose: () -> Unit) {
             Button(onClick = onClose) { Text("Close") }
         }
     }
-}
-
-suspend fun fetchLatestNebulaRelease(): GithubRelease = HttpClient(CIO) {
-    install(ContentNegotiation) {
-        json(Json {
-            ignoreUnknownKeys = true
-        })
-    }
-}.use {
-    return it.get("https://api.github.com/repos/slackhq/nebula/releases/latest").body<GithubRelease>()
 }
