@@ -23,6 +23,7 @@ jobs:
         run: ./gradlew :composeApp:packageReleaseDistributionForCurrentOS
 
       - name: List built files
+        working-directory: composeApp
         run: ls -R build/compose/binaries/main-release
 
       - name: Upload artifacts
