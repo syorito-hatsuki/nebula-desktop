@@ -22,11 +22,9 @@ jobs:
       - name: Build Linux native distributions
         run: ./gradlew :composeApp:packageReleaseDistributionForCurrentOS
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: nebula-desktop-linux
-          path: |
-            composeApp/build/compose/binaries/main-release/deb/
-            composeApp/build/compose/binaries/main-release/rpm/
-            composeApp/build/compose/binaries/main-release/app/
+          files: |
+            composeApp/build/compose/binaries/main-release/deb/*.deb
+            composeApp/build/compose/binaries/main-release/rpm/*.rpm
