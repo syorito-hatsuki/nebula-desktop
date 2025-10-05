@@ -94,7 +94,7 @@ jobs:
       - name: Set macOS files
         id: set-files
         run: |
-          echo "files=$(ls composeApp/build/compose/releases/main-release/macos/*.dmg composeApp/build/compose/releases/main-release/macos/*.pkg | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          echo "files=$(ls composeApp/build/compose/releases/main-release/dmg/*.dmg composeApp/build/compose/releases/main-release/pkg/*.pkg | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
   build-windows:
     runs-on: windows-latest
@@ -115,7 +115,7 @@ jobs:
       - name: Set Windows files
         id: set-files
         run: |
-          powershell -Command "Write-Output ('files=' + (Get-ChildItem composeApp/build/compose/releases/main-release/windows/*.exe, composeApp/build/compose/releases/main-release/windows/*.msi | ForEach-Object { $_.FullName } ) -join ' ') | Out-File -Encoding utf8 -FilePath $env:GITHUB_OUTPUT"
+          powershell -Command "Write-Output ('files=' + (Get-ChildItem composeApp/build/compose/releases/main-release/exe/*.exe, composeApp/build/compose/releases/main-release/msi/*.msi | ForEach-Object { $_.FullName } ) -join ' ') | Out-File -Encoding utf8 -FilePath $env:GITHUB_OUTPUT"
 
   release:
     runs-on: ubuntu-latest
