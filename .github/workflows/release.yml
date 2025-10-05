@@ -41,8 +41,8 @@ permissions:
 #          name: Nebula Desktop ${{ steps.version.outputs.version }}
 #          tag_name: ${{ steps.version.outputs.version }}
 #          files: |
-#            composeApp/build/compose/binaries/main-release/deb/*.deb
-#            composeApp/build/compose/binaries/main-release/rpm/*.rpm
+#            composeApp/build/compose/binaries/release/deb/*.deb
+#            composeApp/build/compose/binaries/release/rpm/*.rpm
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -73,7 +73,7 @@ jobs:
       - name: Set Linux files
         id: set-files
         run: |
-          echo "files=$(ls composeApp/build/compose/binaries/main-release/deb/*.deb composeApp/build/compose/binaries/main-release/rpm/*.rpm | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          echo "files=$(ls composeApp/build/compose/binaries/release/deb/*.deb composeApp/build/compose/binaries/release/rpm/*.rpm | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
   build-mac:
     runs-on: macos-latest
@@ -94,7 +94,7 @@ jobs:
       - name: Set macOS files
         id: set-files
         run: |
-          echo "files=$(ls composeApp/build/compose/binaries/main-release/macos/*.dmg composeApp/build/compose/binaries/main-release/macos/*.pkg | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          echo "files=$(ls composeApp/build/compose/releases/release/macos/*.dmg composeApp/build/compose/binaries/release/macos/*.pkg | tr '\n' ' ')" >> $GITHUB_OUTPUT
 
   build-windows:
     runs-on: windows-latest
@@ -115,7 +115,7 @@ jobs:
       - name: Set Windows files
         id: set-files
         run: |
-          powershell -Command "Write-Output ('files=' + (Get-ChildItem composeApp/build/compose/binaries/main-release/windows/*.exe, composeApp/build/compose/binaries/main-release/windows/*.msi | ForEach-Object { $_.FullName } ) -join ' ') | Out-File -Encoding utf8 -FilePath $env:GITHUB_OUTPUT"
+          powershell -Command "Write-Output ('files=' + (Get-ChildItem composeApp/build/compose/binaries/release/windows/*.exe, composeApp/build/compose/binaries/release/windows/*.msi | ForEach-Object { $_.FullName } ) -join ' ') | Out-File -Encoding utf8 -FilePath $env:GITHUB_OUTPUT"
 
   release:
     runs-on: ubuntu-latest
@@ -127,7 +127,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.build-linux.outputs.version }}
-          name: Nebula Desktop ${{ github.ref_name }}
+          name: Nebula Desktop ${{ needs.build-linux.outputs.version }}
           files: |
             ${{ needs.build-linux.outputs.linux-files }}
             ${{ needs.build-mac.outputs.mac-files }}
