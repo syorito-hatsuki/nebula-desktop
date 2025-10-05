@@ -77,7 +77,8 @@ compose {
 
             nativeDistributions {
                 targetFormats(
-                    TargetFormat.AppImage,
+                    /* Temporally disabled until done actions/tasks for AppImage and Flatpak deploy */
+                    // TargetFormat.AppImage,
                     TargetFormat.Deb,
                     TargetFormat.Rpm,
                     TargetFormat.Dmg,
