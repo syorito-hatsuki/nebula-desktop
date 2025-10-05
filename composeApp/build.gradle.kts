@@ -1,79 +1,116 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
-    kotlin("plugin.serialization") version "2.2.0"
+    alias(libs.plugins.serialization)
 }
 
+val appVersion = rootProject.extra.get("app.version") as String
+
 kotlin {
-    jvm()
+    jvm {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+            languageVersion.set(KotlinVersion.KOTLIN_2_2)
+            freeCompilerArgs.addAll(
+                "-Xjvm-default=all",
+                "-opt-in=kotlin.RequiresOptIn",
+                "-Xinline-classes",
+                "-Xcontext-receivers"
+            )
+        }
+    }
 
     sourceSets {
-        commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.materialIconsExtended)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
-            implementation(libs.androidx.lifecycle.viewmodelCompose)
-            implementation(libs.androidx.lifecycle.runtimeCompose)
+        val commonMain by getting {
+            dependencies {
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material3)
+                implementation(compose.ui)
+                implementation(compose.materialIconsExtended)
+                implementation(compose.components.resources)
+                implementation(compose.components.uiToolingPreview)
+                implementation(libs.androidx.lifecycle.viewmodelCompose)
+                implementation(libs.androidx.lifecycle.runtimeCompose)
+            }
         }
-        jvmMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutinesSwing)
 
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-            implementation("io.ktor:ktor-client-core:3.3.0")
-            implementation("io.ktor:ktor-client-cio:3.3.0")
-            implementation("io.ktor:ktor-client-content-negotiation:3.3.0")
-            implementation("io.ktor:ktor-serialization-kotlinx-json:3.3.0")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+        val jvmMain by getting {
+            dependencies {
+                implementation(compose.desktop.currentOs)
+                implementation(libs.kotlinx.coroutinesSwing)
 
-            implementation("org.apache.commons:commons-compress:1.23.0")
+                implementation(libs.ktor.client.cio)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.kotlinx.serialization.json)
 
-            implementation("io.github.kdroidfilter:composenativetray:0.9.4")
+                implementation(libs.composenativetray)
+                implementation(libs.filekit.core)
+                implementation(libs.filekit.dialogs)
+                implementation(libs.filekit.dialogs.compose)
 
-            val version = "0.11.0"
-            implementation("io.github.vinceglb:filekit-core:${version}")
-            implementation("io.github.vinceglb:filekit-dialogs:${version}")
-            implementation("io.github.vinceglb:filekit-dialogs-compose:${version}")
+                implementation(libs.commons.compress)
+            }
         }
     }
 }
 
+compose {
+    desktop {
+        application {
+            mainClass = "dev.syoritohatsuki.nebuladesktop.MainKt"
 
-compose.desktop {
-    application {
-        mainClass = "dev.syoritohatsuki.nebuladesktop.MainKt"
+            buildTypes {
+                release {
+                    proguard {
+                        isEnabled = false
+                    }
+                }
+            }
 
-        buildTypes.release {
-            proguard { isEnabled = false }
-        }
-
-        nativeDistributions {
-            targetFormats(
-                *setOf(
+            nativeDistributions {
+                targetFormats(
                     TargetFormat.AppImage,
                     TargetFormat.Deb,
+                    TargetFormat.Rpm,
                     TargetFormat.Dmg,
+                    TargetFormat.Pkg,
                     TargetFormat.Exe,
                     TargetFormat.Msi,
-                    TargetFormat.Pkg,
-                    TargetFormat.Rpm,
-                ).toTypedArray()
-            )
+                )
 
-            val version = "2025.10.1"
-            packageVersion = version
-            packageName = "dev.syoritohatsuki.nebuladesktop"
+                packageName = "nebula-desktop"
+                packageVersion = appVersion
+                description = "Nebula Desktop VPN client"
+                vendor = "Syorito Hatsuki"
+                licenseFile.set(project.file("LICENSE.txt"))
 
-            windows {
-                packageVersion = version.substring(2)
+                includeAllModules = false
+                outputBaseDir.set(project.layout.buildDirectory.dir("compose/releases"))
+
+                linux {
+                    iconFile.set(project.file("src/jvmMain/resources/icon.svg"))
+                    rpmLicenseType = "MIT"
+                    appCategory = "Utility"
+                }
+
+                windows {
+                    iconFile.set(project.file("src/jvmMain/resources/icon.ico"))
+                    packageVersion = appVersion.substring(2)
+                    shortcut = true
+                    menuGroup = "Nebula"
+                }
+
+                macOS {
+                    iconFile.set(project.file("src/jvmMain/resources/icon.icns"))
+                }
             }
         }
     }
