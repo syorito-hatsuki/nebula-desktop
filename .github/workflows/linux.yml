@@ -25,14 +25,11 @@ jobs:
           distribution: temurin
           java-version: 21
           
-      - name: Get latest version from build.gradle.kts
+      - name: Get latest version from gradle.properties
         id: version
         run: |
-          VERSION=$(grep -oE 'val version\s*=\s*".*"' composeApp/build.gradle.kts | tail -n1 | sed -E 's/val version\s*=\s*"([^"]+)"/\1/')
+          VERSION=$(grep -oP '^app.version=\K.*' gradle.properties)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: "Debug: print extracted version"
-        run: echo "Gradle version = ${{ steps.version.outputs.version }}"
 
       - name: Build Linux native distributions
         run: ./gradlew :composeApp:packageReleaseDistributionForCurrentOS
