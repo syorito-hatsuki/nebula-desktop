@@ -23,7 +23,7 @@ jobs:
       - name: Get version from build.gradle.kts
         id: version
         run: |
-          VERSION=$(grep -oP 'packageVersion\s*=\s*"\K[^"]+' composeApp/build.gradle.kts)
+          VERSION=$(sed -n 's/.*packageVersion\s*=\s*"\(.*\)".*/\1/p' composeApp/build.gradle.kts)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
 
