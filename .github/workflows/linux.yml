@@ -23,8 +23,9 @@ jobs:
       - name: Get version from build.gradle.kts
         id: version
         run: |
-          VERSION=$(grep -E '^val version\s*=' composeApp/build.gradle.kts | sed -E 's/.*"([^"]+)".*/\1/')
+          VERSION=$(grep -oP 'packageVersion\s*=\s*"\K[^"]+' composeApp/build.gradle.kts)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+
 
       - name: "Debug: print extracted version"
         run: echo "Gradle version = ${{ steps.version.outputs.version }}"
