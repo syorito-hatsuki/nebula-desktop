@@ -3,6 +3,8 @@ name: Linux Release
 on:
   push:
     branches: [ "master" ]
+    paths:
+      - gradle.properties
     
   workflow_dispatch:
   
