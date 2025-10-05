@@ -91,7 +91,7 @@ compose {
                 packageVersion = appVersion
                 description = "Nebula Desktop VPN client"
                 vendor = "Syorito Hatsuki"
-                licenseFile.set(project.file("LICENSE.txt"))
+                licenseFile.set(rootProject.file("LICENSE"))
 
                 includeAllModules = false
                 outputBaseDir.set(project.layout.buildDirectory.dir("compose/releases"))
