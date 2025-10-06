@@ -76,6 +76,9 @@ compose {
             }
 
             nativeDistributions {
+
+                modules("jdk.security.auth", "jdk.unsupported")
+
                 targetFormats(
                     /* Temporally disabled until done actions/tasks for AppImage and Flatpak deploy */
                     // TargetFormat.AppImage,
@@ -93,7 +96,6 @@ compose {
                 vendor = "Syorito Hatsuki"
                 licenseFile.set(rootProject.file("LICENSE"))
 
-                includeAllModules = false
                 outputBaseDir.set(project.layout.buildDirectory.dir("compose/releases"))
 
                 linux {
