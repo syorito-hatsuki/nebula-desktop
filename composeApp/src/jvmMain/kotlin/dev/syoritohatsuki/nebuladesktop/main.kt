@@ -19,8 +19,10 @@ import dev.syoritohatsuki.nebuladesktop.util.StorageManager
 import java.awt.Frame
 
 fun main() = application {
-    val mainWindowViewModel = remember { MainWindowViewModel() }
+
     var windowRef: ComposeWindow? = null
+
+    val mainWindowViewModel = remember { MainWindowViewModel() }
 
     var windowVisible by remember { mutableStateOf(false) }
     var showTray by remember { mutableStateOf(false) }
