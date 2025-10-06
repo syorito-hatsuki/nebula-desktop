@@ -18,8 +18,12 @@ object NebulaManager {
 
     private val _connections = MutableStateFlow<List<NebulaConnection>>(listOf(
         NebulaConnection(
-            name = "Test Connection",
+            name = "Linux Test Connection",
             configPath = Paths.get(System.getProperty("user.home"), ".config", "nebula", "nebula.yml"),
+        ),
+        NebulaConnection(
+            name = "Windows Test Connection",
+            configPath = Paths.get(System.getenv("APPDATA"), "NebulaTray", "configs", "nebula.yml"),
         )
     ))
     val connections: StateFlow<List<NebulaConnection>> = _connections.asStateFlow()
