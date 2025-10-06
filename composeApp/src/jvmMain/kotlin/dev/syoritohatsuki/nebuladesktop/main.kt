@@ -16,7 +16,11 @@ import dev.syoritohatsuki.nebuladesktop.ui.dialog.NebulaDownloadDialog
 import dev.syoritohatsuki.nebuladesktop.ui.main.MainWindow
 import dev.syoritohatsuki.nebuladesktop.ui.main.MainWindowViewModel
 import dev.syoritohatsuki.nebuladesktop.util.StorageManager
+import java.awt.Dimension
 import java.awt.Frame
+
+const val MIN_WIDTH = 640
+const val MIN_HEIGHT = 360
 
 fun main() = application {
 
@@ -35,6 +39,7 @@ fun main() = application {
         visible = windowVisible,
         onCloseRequest = { windowVisible = false }
     ) {
+        window.minimumSize = Dimension(MIN_WIDTH, MIN_HEIGHT)
         MainWindow(mainWindowViewModel)
         windowRef = window
     }
@@ -43,6 +48,7 @@ fun main() = application {
         !StorageManager.nebulaBinaryPath.toFile().exists() -> Window(
             onCloseRequest = { showTray = true }, title = "Nebula Downloader"
         ) {
+            window.minimumSize = Dimension(MIN_WIDTH, MIN_HEIGHT)
             NebulaDownloadDialog(onClose = { this.window.dispose() })
         }
 
