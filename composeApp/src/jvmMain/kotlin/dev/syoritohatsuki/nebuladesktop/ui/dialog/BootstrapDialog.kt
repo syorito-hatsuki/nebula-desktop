@@ -34,11 +34,7 @@ fun NebulaDownloadDialog(onClose: () -> Unit) {
             val arch = System.getProperty("os.arch").lowercase()
             return when {
                 os.contains("win") -> "windows-amd64.zip"
-                os.contains("mac") -> when {
-                    arch.contains("aarch64") || arch.contains("arm") -> "darwin-arm64.zip"
-                    else -> "darwin-amd64.zip"
-                }
-
+                os.contains("mac") -> "darwin.zip"
                 os.contains("nux") || os.contains("linux") -> "linux-amd64.tar.gz"
                 else -> error("Unsupported OS")
             }
