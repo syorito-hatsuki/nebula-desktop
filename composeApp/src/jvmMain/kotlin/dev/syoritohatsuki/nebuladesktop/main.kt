@@ -34,10 +34,10 @@ fun main() = application {
     System.setProperty("apple.awt.application.appearance", "system")
 
     Window(
-        title = "Nebula Desktop",
         icon = rememberVectorPainter(Icons.Filled.Shield),
+        onCloseRequest = { windowVisible = false },
+        title = "Nebula Desktop",
         visible = windowVisible,
-        onCloseRequest = { windowVisible = false }
     ) {
         window.minimumSize = Dimension(MIN_WIDTH, MIN_HEIGHT)
         MainWindow(mainWindowViewModel)
@@ -46,7 +46,8 @@ fun main() = application {
 
     when {
         !StorageManager.nebulaBinaryPath.toFile().exists() -> Window(
-            onCloseRequest = { showTray = true }, title = "Nebula Downloader"
+            onCloseRequest = { showTray = true },
+            title = "Nebula Downloader",
         ) {
             window.minimumSize = Dimension(MIN_WIDTH, MIN_HEIGHT)
             NebulaDownloadDialog(onClose = { this.window.dispose() })
