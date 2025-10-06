@@ -31,7 +31,6 @@ fun NebulaDownloadDialog(onClose: () -> Unit) {
 
         fun getReleaseNameForPlatform(): String {
             val os = System.getProperty("os.name").lowercase()
-            val arch = System.getProperty("os.arch").lowercase()
             return when {
                 os.contains("win") -> "windows-amd64.zip"
                 os.contains("mac") -> "darwin.zip"
