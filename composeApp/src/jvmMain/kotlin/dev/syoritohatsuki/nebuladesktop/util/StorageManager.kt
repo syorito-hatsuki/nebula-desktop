@@ -3,19 +3,31 @@ package dev.syoritohatsuki.nebuladesktop.util
 import java.nio.file.Path
 
 object StorageManager {
+
+    private val osName = System.getProperty("os.name").lowercase()
+    private val userHome = System.getProperty("user.home")
+
     val nebulaBinaryDirPath: Path
         get() = when {
-            System.getProperty("os.name").contains("win", true) -> Path.of(
+            osName.contains("win") -> Path.of(
                 System.getenv("APPDATA"), "NebulaTray", "bin"
             )
 
-            else -> Path.of(System.getProperty("user.home"), ".local", "share", "nebula-tray", "bin")
+            osName.contains("mac") -> Path.of(
+                userHome, "Library", "Application Support", "NebulaTray", "bin"
+            )
+
+            osName.contains("nux") -> Path.of(
+                userHome, ".local", "share", "nebula-tray", "bin"
+            )
+
+            else -> error("Unknown OS name: $osName")
         }
 
     val nebulaBinaryPath: Path
         get() = nebulaBinaryDirPath.resolve(
             when {
-                System.getProperty("os.name").lowercase().contains("win") -> "nebula.exe"
+                osName.contains("win") -> "nebula.exe"
                 else -> "nebula"
             }
         )
