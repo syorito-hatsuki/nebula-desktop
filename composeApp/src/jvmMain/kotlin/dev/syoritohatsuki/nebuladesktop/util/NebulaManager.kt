@@ -9,11 +9,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.io.IOException
+import java.nio.file.Paths
+import kotlin.io.path.absolutePathString
 
 object NebulaManager {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    private val _connections = MutableStateFlow<List<NebulaConnection>>(emptyList())
+    private val _connections = MutableStateFlow<List<NebulaConnection>>(listOf(
+        NebulaConnection(
+            name = "Test Connection",
+            configPath = Paths.get(System.getProperty("user.home"), ".config", "nebula", "nebula.yml"),
+        )
+    ))
     val connections: StateFlow<List<NebulaConnection>> = _connections.asStateFlow()
 
     fun addConnection(connection: NebulaConnection): Boolean {
@@ -24,27 +32,68 @@ object NebulaManager {
 
     fun startConnection(name: String) {
         val connection = _connections.value.find { it.name == name } ?: return
-        if (connection.status == NebulaConnection.ConnectionStatus.ON) return
+        if (connection.status == NebulaConnection.ConnectionStatus.ON) {
+            connection.logs.tryEmit("${connection.name} already connected")
+            return
+        }
 
         scope.launch {
-            val process = ProcessBuilder("nebula", "-config", connection.configPath.toString())
-                .redirectErrorStream(true)
-                .start()
-
-            connection.process = process
-            connection.status = NebulaConnection.ConnectionStatus.ON
-            emitUpdated(connection)
-
-            process.inputStream.bufferedReader().useLines { lines ->
-                lines.forEach { line ->
-                    connection.logs.tryEmit(line)
+            try {
+                var process = try {
+                    ProcessBuilder(
+                        StorageManager.nebulaBinaryPath.absolutePathString(),
+                        "-config",
+                        connection.configPath.toString()
+                    )
+                        .redirectErrorStream(true)
+                        .start()
+                } catch (e: IOException) {
+                    connection.logs.tryEmit("Standard start failed: ${e.message}")
+                    null
                 }
-            }
 
-            process.waitFor()
-            connection.status = NebulaConnection.ConnectionStatus.OFF
-            connection.process = null
-            emitUpdated(connection)
+                if (process == null || !process.isAlive) {
+                    connection.logs.tryEmit("Attempting elevated start...")
+                    process = ProcessLauncher.runNebulaWithElevation(
+                        connection.configPath,
+                        StorageManager.nebulaBinaryPath
+                    )
+                }
+
+                connection.process = process
+                connection.status = NebulaConnection.ConnectionStatus.ON
+                emitUpdated(connection)
+
+                process.inputStream.bufferedReader().useLines { lines ->
+                    lines.forEach { line ->
+                        connection.logs.tryEmit(line)
+
+                        // Detect permission error
+                        if (line.contains("operation not permitted", ignoreCase = true)) {
+                            connection.logs.tryEmit("Permission issue detected, restarting with elevation...")
+                            process.destroy()
+                            val elevated = ProcessLauncher.runNebulaWithElevation(
+                                connection.configPath,
+                                StorageManager.nebulaBinaryPath
+                            )
+                            connection.process = elevated
+                            elevated.inputStream.bufferedReader().useLines { elevatedLines ->
+                                elevatedLines.forEach { elevatedLine ->
+                                    connection.logs.tryEmit(elevatedLine)
+                                }
+                            }
+                            elevated.waitFor()
+                        }
+                    }
+                }
+
+                process.waitFor()
+                connection.status = NebulaConnection.ConnectionStatus.OFF
+                connection.process = null
+                emitUpdated(connection)
+            } catch (e: Exception) {
+                connection.logs.tryEmit("Failed to start Nebula: ${e.message}")
+            }
         }
     }
 
