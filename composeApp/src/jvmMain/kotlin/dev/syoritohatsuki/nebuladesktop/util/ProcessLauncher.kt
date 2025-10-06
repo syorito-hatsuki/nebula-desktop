@@ -10,8 +10,9 @@ object ProcessLauncher {
 
         val command = when {
             os.contains("win") -> listOf(
-                "powershell", "-Command",
-                "Start-Process -Verb runAs '${nebulaBinary}' '-config ${config}'"
+                "powershell",
+                "-Command",
+                "Start-Process -FilePath '${nebulaBinary}' -ArgumentList '-config \"${config}\"' -Verb RunAs -Wait"
             )
 
             os.contains("mac") -> listOf(
