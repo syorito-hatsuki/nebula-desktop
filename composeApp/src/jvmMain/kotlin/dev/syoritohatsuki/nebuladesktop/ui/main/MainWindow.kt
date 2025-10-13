@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -34,32 +35,34 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
 
     val connections by mainWindowViewModel.connections.collectAsState()
     var selectedConnection by remember { mutableStateOf<NebulaConnection?>(null) }
-    val logLines = remember { mutableStateListOf<String>() }
-
+    val logLines = mainWindowViewModel.logLines
 
     val filePicker = rememberFilePickerLauncher(
-        title = "Select Nebula Config",
-        type = FileKitType.File(extensions = listOf("yml", "yaml"))
+        title = "Select Nebula Config", type = FileKitType.File(extensions = listOf("yml", "yaml"))
     ) { file ->
         file?.let {
             println(it.file.readText())
         }
     }
 
+    LaunchedEffect(selectedConnection) {
+        if (selectedConnection == null) return@LaunchedEffect
+        println("Not null: ${selectedConnection?.name} | ${selectedConnection?.status}")
+        logLines.clear()
+        mainWindowViewModel.preloadLogs(selectedConnection!!)
+        mainWindowViewModel.observeLogs(selectedConnection!!)
+    }
+
     Row(modifier = Modifier.fillMaxSize().background(Color(0xFF1E1E1E))) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(0.28f)
-                .background(Color(0xFF252526))
-                .padding(8.dp)
+            modifier = Modifier.fillMaxHeight().fillMaxWidth(0.28f).background(Color(0xFF252526)).padding(8.dp)
         ) {
             item {
                 Text(
                     "Connections",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(8.dp)
+                    modifier = Modifier.padding(8.dp),
                 )
             }
 
@@ -67,15 +70,12 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
                 val isSelected = selectedConnection == conn
 
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .clickable {
-                            selectedConnection = conn
-                            logLines.clear()
-                        },
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { selectedConnection = conn },
                     colors = CardDefaults.cardColors(
-                        containerColor = if (isSelected) Color(0xFF3C3C3C) else Color(0xFF2D2D2D)
+                        containerColor = when {
+                            isSelected -> Color(0xFF3C3C3C)
+                            else -> Color(0xFF2D2D2D)
+                        }
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -84,14 +84,15 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
                         verticalAlignment = CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Column() {
+                        Column {
                             Text(conn.name, color = Color.White, fontWeight = FontWeight.SemiBold)
                             Text(conn.configPath.toString(), color = Color.LightGray, fontSize = 12.sp)
                         }
                         Icon(
-                            imageVector = Icons.Filled.Shield,
-                            contentDescription = null,
-                            tint = if (conn.status == NebulaConnection.ConnectionStatus.ON) Color(0xFF2ECC71) else Color(0xFFE74C3C)
+                            imageVector = Icons.Filled.Shield, contentDescription = null, tint = when (conn.status) {
+                                NebulaConnection.ConnectionStatus.ON -> Color(0xFF2ECC71)
+                                else -> Color(0xFFE74C3C)
+                            }
                         )
                     }
                 }
@@ -100,9 +101,7 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
-                    onClick = {
-                        filePicker.launch()
-                    },
+                    onClick = { filePicker.launch() },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007ACC))
                 ) {
@@ -112,11 +111,7 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
         }
 
         Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth()
-                .background(Color(0xFF1E1E1E))
-                .padding(16.dp)
+            modifier = Modifier.fillMaxHeight().fillMaxWidth().background(Color(0xFF1E1E1E)).padding(16.dp)
         ) {
             selectedConnection?.let { connection ->
                 Column(modifier = Modifier.fillMaxSize()) {
@@ -129,9 +124,10 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
                         Column {
                             Text(connection.name, color = Color.White, fontSize = 20.sp)
                             Text(
-                                "Status: ${connection.status}",
-                                color = if (connection.status == NebulaConnection.ConnectionStatus.ON)
-                                    Color(0xFF2ECC71) else Color(0xFFE74C3C)
+                                "Status: ${connection.status}", color = when (connection.status) {
+                                    NebulaConnection.ConnectionStatus.ON -> Color(0xFF2ECC71)
+                                    else -> Color(0xFFE74C3C)
+                                }
                             )
                         }
 
@@ -155,34 +151,23 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
                     Spacer(modifier = Modifier.height(8.dp))
 
                     // Logs window
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFF111111))
+
+                    SelectionContainer(
+                        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)).background(Color(0xFF111111))
                             .border(1.dp, Color(0xFF3C3C3C), RoundedCornerShape(8.dp))
-                            .padding(8.dp)
                     ) {
                         LazyColumn(
                             reverseLayout = true,
-                            modifier = Modifier.fillMaxSize()
                         ) {
-                            items(logLines) { line ->
+                            items(logLines) {
                                 Text(
-                                    line,
-                                    color = Color(0xFFCCCCCC),
+                                    text = it,
+                                    color = Color.Unspecified,
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 12.sp
+                                    fontSize = 12.sp,
                                 )
                             }
                         }
-                    }
-                }
-
-                LaunchedEffect(connection) {
-                    connection.logs.collect { line ->
-                        logLines.add(0, line)
-                        if (logLines.size > 1000) logLines.removeLast()
                     }
                 }
             } ?: run {

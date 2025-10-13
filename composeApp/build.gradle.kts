@@ -57,6 +57,8 @@ kotlin {
                 implementation(libs.filekit.dialogs.compose)
 
                 implementation(libs.commons.compress)
+
+                implementation(libs.pty4j)
             }
         }
     }
@@ -81,7 +83,7 @@ compose {
 
                 targetFormats(
                     /* Temporally disabled until done actions/tasks for AppImage and Flatpak deploy */
-                    // TargetFormat.AppImage,
+                     TargetFormat.AppImage,
                     TargetFormat.Deb,
                     TargetFormat.Rpm,
                     TargetFormat.Dmg,

@@ -9,7 +9,9 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,22 +30,12 @@ fun ApplicationScope.MainTray(mainWindowViewModel: MainWindowViewModel = viewMod
 
     val connections by mainWindowViewModel.connections.collectAsState()
 
-    var openFilePicker by remember { mutableStateOf(false) }
-
-    val launcher = rememberFilePickerLauncher(
+    val filePicker = rememberFilePickerLauncher(
         title = "Select Nebula Config",
         type = FileKitType.File(extensions = listOf("yml", "yaml"))
     ) { file ->
         file?.let {
             println(it.file.readText())
-//            nebulaManagerViewModel.importConfig(Path(it.path))
-        }
-    }
-
-    LaunchedEffect(openFilePicker) {
-        if (openFilePicker) {
-            openFilePicker = false
-            launcher.launch()
         }
     }
 
@@ -97,11 +89,11 @@ fun ApplicationScope.MainTray(mainWindowViewModel: MainWindowViewModel = viewMod
 
         Item("Open", icon = Icons.AutoMirrored.Filled.OpenInNew) { openWindow() }
 
-        Item("Add Config", icon = Icons.Filled.Add) {
-            openFilePicker = true
+        Item("Add Config", icon = Icons.Filled.Add) { filePicker.launch() }
+
+        Item("Quit", icon = Icons.AutoMirrored.Filled.ExitToApp) {
+            exitApplication()
+
         }
-
-        Item("Quit", icon = Icons.AutoMirrored.Filled.ExitToApp) { exitApplication() }
-
     }
 }
