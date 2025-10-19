@@ -24,17 +24,39 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection
+import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection.ConnectionStatus
+import dev.syoritohatsuki.nebuladesktop.ui.ADD_BUTTON_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.BACKGROUND_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.CARD_BACKGROUND_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.CARD_SELECTED_BACKGROUND_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.DISABLED_ICON_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.ENABLED_ICON_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.LOGS_BACKGROUND_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.LOGS_BORDER_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.SIDEBAR_BACKGROUND_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.START_BUTTON_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.STOP_BUTTON_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.TEXT_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.TEXT_COLOR_SECONDARY
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
+    var selectedName by remember { mutableStateOf<String?>(null) }
 
     val connections by mainWindowViewModel.connections.collectAsState()
-    var selectedConnection by remember { mutableStateOf<NebulaConnection?>(null) }
+    val statusFlows by mainWindowViewModel.statusFlows.collectAsState()
+
+    val selectedConnection = remember(connections, selectedName) {
+        connections.firstOrNull { it.name == selectedName } ?: connections.firstOrNull()
+    }
+
     val logLines = mainWindowViewModel.logLines
 
     val filePicker = rememberFilePickerLauncher(
@@ -45,120 +67,119 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
         }
     }
 
-    LaunchedEffect(selectedConnection) {
-        if (selectedConnection == null) return@LaunchedEffect
-        println("Not null: ${selectedConnection?.name} | ${selectedConnection?.status}")
-        logLines.clear()
-        mainWindowViewModel.preloadLogs(selectedConnection!!)
-        mainWindowViewModel.observeLogs(selectedConnection!!)
+
+    LaunchedEffect(selectedConnection?.name) {
+        selectedConnection?.let {
+            mainWindowViewModel.preloadLogs(it)
+            mainWindowViewModel.observeLogs(it)
+        }
     }
 
-    Row(modifier = Modifier.fillMaxSize().background(Color(0xFF1E1E1E))) {
-        LazyColumn(
-            modifier = Modifier.fillMaxHeight().fillMaxWidth(0.28f).background(Color(0xFF252526)).padding(8.dp)
+    Row(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxHeight().fillMaxWidth(0.3f).background(SIDEBAR_BACKGROUND_COLOR).padding(8.dp)
         ) {
-            item {
-                Text(
-                    "Connections",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(8.dp),
-                )
-            }
-
-            items(connections) { conn ->
-                val isSelected = selectedConnection == conn
-
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { selectedConnection = conn },
-                    colors = CardDefaults.cardColors(
-                        containerColor = when {
-                            isSelected -> Color(0xFF3C3C3C)
-                            else -> Color(0xFF2D2D2D)
-                        }
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(12.dp),
-                        verticalAlignment = CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text(conn.name, color = Color.White, fontWeight = FontWeight.SemiBold)
-                            Text(conn.configPath.toString(), color = Color.LightGray, fontSize = 12.sp)
-                        }
-                        Icon(
-                            imageVector = Icons.Filled.Shield, contentDescription = null, tint = when (conn.status) {
-                                NebulaConnection.ConnectionStatus.ON -> Color(0xFF2ECC71)
-                                else -> Color(0xFFE74C3C)
+            LazyColumn(modifier = Modifier.fillMaxSize().weight(1f)) {
+                items(connections) { conn ->
+                    val statusFlow = statusFlows[conn.name]
+                    val status by (statusFlow ?: MutableStateFlow(ConnectionStatus.OFF)).collectAsState()
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                selectedName = conn.name
+                            }, colors = CardDefaults.cardColors(
+                            containerColor = when {
+                                selectedConnection == conn -> CARD_SELECTED_BACKGROUND_COLOR
+                                else -> CARD_BACKGROUND_COLOR
                             }
-                        )
+                        ), shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            verticalAlignment = CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = conn.name,
+                                    color = TEXT_COLOR,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = conn.configPath.toString(),
+                                    color = TEXT_COLOR_SECONDARY,
+                                    fontSize = 12.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            Box(modifier = Modifier.width(24.dp).height(24.dp).padding(start = 4.dp)) {
+                                Icon(
+                                    modifier = Modifier.fillMaxSize(),
+                                    imageVector = Icons.Filled.Shield,
+                                    contentDescription = null,
+                                    tint = when (status) {
+                                        ConnectionStatus.ON -> ENABLED_ICON_COLOR
+                                        else -> DISABLED_ICON_COLOR
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
 
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = { filePicker.launch() },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007ACC))
-                ) {
-                    Text("Add Connection", color = Color.White)
-                }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = { filePicker.launch() },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = ADD_BUTTON_COLOR)
+            ) {
+                Text("Add Connection", color = TEXT_COLOR)
             }
         }
 
         Box(
-            modifier = Modifier.fillMaxHeight().fillMaxWidth().background(Color(0xFF1E1E1E)).padding(16.dp)
+            modifier = Modifier.fillMaxHeight().fillMaxWidth().background(BACKGROUND_COLOR).padding(16.dp)
         ) {
             selectedConnection?.let { connection ->
+                val statusFlow = statusFlows[connection.name]
+                val status by (statusFlow ?: MutableStateFlow(ConnectionStatus.OFF)).collectAsState()
+
                 Column(modifier = Modifier.fillMaxSize()) {
-                    // Header with actions
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = CenterVertically
                     ) {
                         Column {
-                            Text(connection.name, color = Color.White, fontSize = 20.sp)
-                            Text(
-                                "Status: ${connection.status}", color = when (connection.status) {
-                                    NebulaConnection.ConnectionStatus.ON -> Color(0xFF2ECC71)
-                                    else -> Color(0xFFE74C3C)
-                                }
-                            )
+                            Text(connection.name, color = TEXT_COLOR, fontSize = 20.sp)
                         }
 
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (connection.status == NebulaConnection.ConnectionStatus.OFF) {
-                                Button(
+                            when (status) {
+                                ConnectionStatus.OFF -> Button(
                                     onClick = { mainWindowViewModel.startConnection(connection.name) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2ECC71))
-                                ) { Text("Start") }
-                            } else {
-                                Button(
+                                    colors = ButtonDefaults.buttonColors(containerColor = START_BUTTON_COLOR)
+                                ) { Text("Start", color = TEXT_COLOR) }
+
+                                ConnectionStatus.ON -> Button(
                                     onClick = { mainWindowViewModel.stopConnection(connection.name) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE74C3C))
-                                ) { Text("Stop") }
+                                    colors = ButtonDefaults.buttonColors(containerColor = STOP_BUTTON_COLOR)
+                                ) { Text("Stop", color = TEXT_COLOR) }
                             }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Logs", color = Color.White, fontWeight = FontWeight.SemiBold)
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Logs window
 
                     SelectionContainer(
-                        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)).background(Color(0xFF111111))
-                            .border(1.dp, Color(0xFF3C3C3C), RoundedCornerShape(8.dp))
+                        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
+                            .background(LOGS_BACKGROUND_COLOR).border(1.dp, LOGS_BORDER_COLOR, RoundedCornerShape(8.dp))
                     ) {
-                        LazyColumn(
-                            reverseLayout = true,
-                        ) {
+                        LazyColumn(reverseLayout = true) {
                             items(logLines) {
                                 Text(
                                     text = it,
@@ -170,10 +191,8 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
                         }
                     }
                 }
-            } ?: run {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Select a connection", color = Color.Gray)
-                }
+            } ?: Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Select a connection", color = TEXT_COLOR_SECONDARY)
             }
         }
     }

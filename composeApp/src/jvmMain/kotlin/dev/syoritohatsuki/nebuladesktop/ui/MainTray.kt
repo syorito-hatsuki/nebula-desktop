@@ -31,69 +31,55 @@ fun ApplicationScope.MainTray(mainWindowViewModel: MainWindowViewModel = viewMod
     val connections by mainWindowViewModel.connections.collectAsState()
 
     val filePicker = rememberFilePickerLauncher(
-        title = "Select Nebula Config",
-        type = FileKitType.File(extensions = listOf("yml", "yaml"))
-    ) { file ->
-        file?.let {
-            println(it.file.readText())
-        }
+        title = "Select Nebula Config", type = FileKitType.File(extensions = listOf("yml", "yaml"))
+    ) { platformFile ->
+        println(platformFile?.file?.readText())
     }
 
     Tray(
         iconContent = {
-            Box(
-                modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 val anyConnected = connections.any {
-                    it.status == NebulaConnection.ConnectionStatus.ON
+                    it.status.value == NebulaConnection.ConnectionStatus.ON
                 }
 
                 Icon(
                     imageVector = Icons.Filled.Shield,
                     contentDescription = "VPN",
-                    tint = if (anyConnected) Color(0xFF2ECC71) else Color(0xFFE74C3C),
+                    tint = when {
+                        anyConnected -> ENABLED_ICON_COLOR
+                        else -> DISABLED_ICON_COLOR
+                    },
                     modifier = Modifier.fillMaxSize()
                 )
 
                 if (anyConnected) {
                     Text(
                         text = if (connections.size > 9) "+" else connections.size.toString(),
-                        color = Color.White,
+                        color = TEXT_COLOR,
                         fontSize = 64.sp,
                         fontWeight = FontWeight.Bold,
                     )
                 }
             }
         },
-        primaryAction = {
-            openWindow()
-        },
+        primaryAction = { openWindow() },
         tooltip = "Active connections: ${connections.size}",
     ) {
         connections.forEach {
             CheckableItem(
                 label = it.name,
-                checked = it.status == NebulaConnection.ConnectionStatus.ON,
+                checked = it.status.value == NebulaConnection.ConnectionStatus.ON,
                 onCheckedChange = { isChecked ->
-                    if (isChecked) {
-                        mainWindowViewModel.stopConnection(it.name)
-                        println("Connection ${it.name} stopped")
-                    } else {
-                        mainWindowViewModel.startConnection(it.name)
-                        println("Connection ${it.name} started")
+                    when {
+                        isChecked -> mainWindowViewModel.stopConnection(it.name)
+                        else -> mainWindowViewModel.startConnection(it.name)
                     }
                 })
         }
-
         Divider()
-
         Item("Open", icon = Icons.AutoMirrored.Filled.OpenInNew) { openWindow() }
-
         Item("Add Config", icon = Icons.Filled.Add) { filePicker.launch() }
-
-        Item("Quit", icon = Icons.AutoMirrored.Filled.ExitToApp) {
-            exitApplication()
-
-        }
+        Item("Quit", icon = Icons.AutoMirrored.Filled.ExitToApp) { exitApplication() }
     }
 }
