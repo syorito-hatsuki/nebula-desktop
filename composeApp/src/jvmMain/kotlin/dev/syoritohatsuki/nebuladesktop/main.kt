@@ -45,7 +45,7 @@ fun main() = application {
 
     System.setProperty("apple.awt.application.appearance", "system")
 
-    if (operationSystem.contains("win")) {
+    if (operationSystem.contains("win") && !isRunningAsAdmin()) {
         Window(
             onCloseRequest = ::exitApplication,
             title = "Nebula Desktop - Admin Right Error",
@@ -115,10 +115,13 @@ private fun focusAppWindow(window: ComposeWindow?) {
 }
 
 fun isRunningAsAdmin(): Boolean = try {
-    ProcessBuilder("net", "session").start().waitFor() == 0
+    ProcessBuilder(
+        "powershell",
+        "-Command",
+        "[bool]([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)"
+    ).start().inputStream.bufferedReader().readText().trim().equals("True", ignoreCase = true)
 } catch (_: Exception) {
     false
 }
 
-suspend fun <T> runOnSwing(block: () -> T): T =
-    withContext(Dispatchers.Swing) { block() }
+suspend fun <T> runOnSwing(block: () -> T): T = withContext(Dispatchers.Swing) { block() }
