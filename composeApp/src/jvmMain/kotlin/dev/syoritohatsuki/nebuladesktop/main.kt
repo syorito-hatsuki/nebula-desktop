@@ -3,15 +3,12 @@ package dev.syoritohatsuki.nebuladesktop
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Shield
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -27,6 +24,9 @@ import dev.syoritohatsuki.nebuladesktop.util.StorageManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.swing.Swing
 import kotlinx.coroutines.withContext
+import nebula_desktop.composeapp.generated.resources.Res
+import nebula_desktop.composeapp.generated.resources.icon
+import org.jetbrains.compose.resources.painterResource
 import java.awt.Dimension
 import java.awt.Frame
 
@@ -62,7 +62,7 @@ fun main() = application {
     }
 
     Window(
-        icon = rememberVectorPainter(Icons.Filled.Shield),
+        icon = painterResource(Res.drawable.icon),
         onCloseRequest = { windowVisible = false },
         title = "Nebula Desktop",
         visible = windowVisible,
