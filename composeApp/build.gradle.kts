@@ -92,7 +92,7 @@ compose {
                     TargetFormat.Msi,
                 )
 
-                packageName = "nebula-desktop"
+                packageName = "Nebula Desktop"
                 packageVersion = appVersion
                 description = "Nebula Desktop VPN client"
                 vendor = "Syorito Hatsuki"
