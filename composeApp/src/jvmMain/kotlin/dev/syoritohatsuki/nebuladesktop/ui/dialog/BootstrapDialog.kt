@@ -1,5 +1,6 @@
 package dev.syoritohatsuki.nebuladesktop.ui.dialog
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
@@ -11,6 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.syoritohatsuki.nebuladesktop.api.GithubApi
 import dev.syoritohatsuki.nebuladesktop.network.downloadFile
+import dev.syoritohatsuki.nebuladesktop.ui.BACKGROUND_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.PROGRESS_BAR_BACKGROUND_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.PROGRESS_BAR_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.TEXT_COLOR
 import dev.syoritohatsuki.nebuladesktop.util.StorageManager.nebulaBinaryDirPath
 import dev.syoritohatsuki.nebuladesktop.util.StorageManager.nebulaBinaryPath
 import dev.syoritohatsuki.nebuladesktop.util.extractTarGz
@@ -78,13 +83,18 @@ fun NebulaDownloadDialog(onClose: () -> Unit) {
     LaunchedEffect(retryKey) { startBootstrap() }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier.padding(16.dp).background(color = BACKGROUND_COLOR),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(progressText)
+        Text(progressText, color = TEXT_COLOR)
         Spacer(Modifier.height(16.dp))
-        LinearProgressIndicator(progress = progress.toFloat(), modifier = Modifier.fillMaxWidth())
+        LinearProgressIndicator(
+            progress = progress.toFloat(),
+            modifier = Modifier.fillMaxWidth(),
+            color = PROGRESS_BAR_COLOR,
+            backgroundColor = PROGRESS_BAR_BACKGROUND_COLOR
+        )
 
         if (errorMessage != null) {
             Spacer(Modifier.height(16.dp))

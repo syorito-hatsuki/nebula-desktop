@@ -1,5 +1,6 @@
 package dev.syoritohatsuki.nebuladesktop
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
@@ -16,7 +17,9 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.kdroid.composetray.utils.SingleInstanceManager
+import dev.syoritohatsuki.nebuladesktop.ui.BACKGROUND_COLOR
 import dev.syoritohatsuki.nebuladesktop.ui.MainTray
+import dev.syoritohatsuki.nebuladesktop.ui.TEXT_COLOR
 import dev.syoritohatsuki.nebuladesktop.ui.dialog.NebulaDownloadDialog
 import dev.syoritohatsuki.nebuladesktop.ui.main.MainWindow
 import dev.syoritohatsuki.nebuladesktop.ui.main.MainWindowViewModel
@@ -52,9 +55,10 @@ fun main() = application {
             state = rememberWindowState(size = DpSize(Dp.Unspecified, Dp.Unspecified)),
         ) {
             window.isResizable = false
-            Box(modifier = Modifier.padding(16.dp)) {
+            Box(modifier = Modifier.padding(16.dp).background(color = BACKGROUND_COLOR)) {
                 Text(
-                    text = "Nebula Desktop requires admin rights to run Please restart the application with admin rights."
+                    text = "Nebula Desktop requires admin rights to run Please restart the application with admin rights.",
+                    color = TEXT_COLOR,
                 )
             }
         }
@@ -76,7 +80,9 @@ fun main() = application {
         !StorageManager.nebulaBinaryPath.toFile().exists() -> Window(
             onCloseRequest = {},
             title = "Nebula Downloader",
+            state = rememberWindowState(size = DpSize(Dp.Unspecified, Dp.Unspecified)),
         ) {
+            window.isResizable = false
             window.minimumSize = Dimension(MIN_WIDTH, MIN_HEIGHT)
             NebulaDownloadDialog(onClose = {
                 this.window.dispose()
