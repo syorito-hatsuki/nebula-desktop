@@ -104,6 +104,7 @@ compose {
                     iconFile.set(project.file("src/jvmMain/resources/icon.svg"))
                     rpmLicenseType = "MIT"
                     appCategory = "Utility"
+                    menuGroup = "Utility"
                 }
 
                 windows {
