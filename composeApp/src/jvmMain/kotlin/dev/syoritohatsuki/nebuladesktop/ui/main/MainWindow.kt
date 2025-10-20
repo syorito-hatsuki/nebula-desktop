@@ -27,28 +27,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection
 import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection.ConnectionStatus
-import dev.syoritohatsuki.nebuladesktop.ui.ADD_BUTTON_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.BACKGROUND_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.CARD_BACKGROUND_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.CARD_SELECTED_BACKGROUND_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.DISABLED_ICON_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.ENABLED_ICON_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.LOGS_BACKGROUND_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.LOGS_BORDER_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.SIDEBAR_BACKGROUND_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.START_BUTTON_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.STOP_BUTTON_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.TEXT_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.TEXT_COLOR_SECONDARY
+import dev.syoritohatsuki.nebuladesktop.runOnSwing
+import dev.syoritohatsuki.nebuladesktop.ui.*
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
     var selectedName by remember { mutableStateOf<String?>(null) }
+
+    val scope = rememberCoroutineScope()
 
     val connections by mainWindowViewModel.connections.collectAsState()
     val statusFlows by mainWindowViewModel.statusFlows.collectAsState()
@@ -63,8 +54,8 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
         title = "Select Nebula Config", type = FileKitType.File(extensions = listOf("yml", "yaml"))
     ) { file ->
         file?.let {
-            println(it.file.readText())
-        }
+            mainWindowViewModel.addConnection(it.file)
+        } ?: error("File not found or something went wrong")
     }
 
 
@@ -82,12 +73,10 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
             LazyColumn(modifier = Modifier.fillMaxSize().weight(1f)) {
                 items(connections) { conn ->
                     val statusFlow = statusFlows[conn.name]
-                    val status by (statusFlow ?: MutableStateFlow(ConnectionStatus.OFF)).collectAsState()
+                    val status by (statusFlow ?: MutableStateFlow(ConnectionStatus.DISABLED)).collectAsState()
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clip(RoundedCornerShape(12.dp))
-                            .clickable {
-                                selectedName = conn.name
-                            }, colors = CardDefaults.cardColors(
+                            .clickable { selectedName = conn.name }, colors = CardDefaults.cardColors(
                             containerColor = when {
                                 selectedConnection == conn -> CARD_SELECTED_BACKGROUND_COLOR
                                 else -> CARD_BACKGROUND_COLOR
@@ -121,8 +110,10 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
                                     imageVector = Icons.Filled.Shield,
                                     contentDescription = null,
                                     tint = when (status) {
-                                        ConnectionStatus.ON -> ENABLED_ICON_COLOR
-                                        else -> DISABLED_ICON_COLOR
+                                        ConnectionStatus.ENABLED -> ENABLED_ICON_COLOR
+                                        ConnectionStatus.DISABLED -> DISABLED_ICON_COLOR
+                                        ConnectionStatus.STOPPING -> AWAIT_ICON_COLOR
+                                        ConnectionStatus.STARTING -> AWAIT_ICON_COLOR
                                     }
                                 )
                             }
@@ -133,7 +124,13 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
 
             Spacer(modifier = Modifier.height(8.dp))
             Button(
-                onClick = { filePicker.launch() },
+                onClick = {
+                    scope.launch {
+                        runOnSwing {
+                            filePicker.launch()
+                        }
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = ADD_BUTTON_COLOR)
             ) {
@@ -146,7 +143,7 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
         ) {
             selectedConnection?.let { connection ->
                 val statusFlow = statusFlows[connection.name]
-                val status by (statusFlow ?: MutableStateFlow(ConnectionStatus.OFF)).collectAsState()
+                val status by (statusFlow ?: MutableStateFlow(ConnectionStatus.DISABLED)).collectAsState()
 
                 Column(modifier = Modifier.fillMaxSize()) {
                     Row(
@@ -154,21 +151,47 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = CenterVertically
                     ) {
-                        Column {
-                            Text(connection.name, color = TEXT_COLOR, fontSize = 20.sp)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = connection.name,
+                                color = TEXT_COLOR,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                fontSize = 20.sp,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = connection.configPath.toString(),
+                                color = TEXT_COLOR_SECONDARY,
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         }
 
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             when (status) {
-                                ConnectionStatus.OFF -> Button(
-                                    onClick = { mainWindowViewModel.startConnection(connection.name) },
+                                ConnectionStatus.DISABLED -> Button(
+                                    onClick = { mainWindowViewModel.startConnection(connection.configPath) },
                                     colors = ButtonDefaults.buttonColors(containerColor = START_BUTTON_COLOR)
                                 ) { Text("Start", color = TEXT_COLOR) }
 
-                                ConnectionStatus.ON -> Button(
-                                    onClick = { mainWindowViewModel.stopConnection(connection.name) },
+                                ConnectionStatus.STARTING -> Button(
+                                    onClick = {},
+                                    enabled = false,
+                                    colors = ButtonDefaults.buttonColors(disabledContainerColor = AWAIT_BUTTON_COLOR)
+                                ) { Text("Starting…", color = TEXT_COLOR) }
+
+                                ConnectionStatus.ENABLED -> Button(
+                                    onClick = { mainWindowViewModel.stopConnection(connection.configPath) },
                                     colors = ButtonDefaults.buttonColors(containerColor = STOP_BUTTON_COLOR)
                                 ) { Text("Stop", color = TEXT_COLOR) }
+
+                                ConnectionStatus.STOPPING -> Button(
+                                    enabled = false,
+                                    onClick = {},
+                                    colors = ButtonDefaults.buttonColors(disabledContainerColor = AWAIT_BUTTON_COLOR)
+                                ) { Text("Stopping…", color = TEXT_COLOR) }
                             }
                         }
                     }

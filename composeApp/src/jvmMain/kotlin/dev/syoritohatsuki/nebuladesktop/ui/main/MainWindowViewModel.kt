@@ -8,14 +8,10 @@ import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection
 import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection.ConnectionStatus
 import dev.syoritohatsuki.nebuladesktop.util.NebulaManager
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.io.File
+import java.nio.file.Path
 
 object MainWindowViewModel : ViewModel() {
     val manager = NebulaManager
@@ -40,11 +36,11 @@ object MainWindowViewModel : ViewModel() {
         }
     }
 
-    fun startConnection(name: String) = manager.startConnection(name)
+    fun startConnection(configFilePath: Path) = manager.startConnection(configFilePath)
 
-    fun stopConnection(name: String) = manager.stopConnection(name)
+    fun stopConnection(configFilePath: Path) = manager.stopConnection(configFilePath)
 
-    fun addConnection(connection: NebulaConnection): Boolean = manager.addConnection(connection)
+    fun addConnection(configFile: File): Boolean = manager.addConnection(configFile)
 
     fun observeLogs(connection: NebulaConnection) {
         if (observingConnection == connection.name) return

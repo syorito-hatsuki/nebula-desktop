@@ -24,6 +24,9 @@ import dev.syoritohatsuki.nebuladesktop.ui.dialog.NebulaDownloadDialog
 import dev.syoritohatsuki.nebuladesktop.ui.main.MainWindow
 import dev.syoritohatsuki.nebuladesktop.ui.main.MainWindowViewModel
 import dev.syoritohatsuki.nebuladesktop.util.StorageManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.swing.Swing
+import kotlinx.coroutines.withContext
 import java.awt.Dimension
 import java.awt.Frame
 
@@ -33,7 +36,6 @@ const val MIN_HEIGHT = 360
 val operationSystem = System.getProperty("os.name").lowercase()
 
 fun main() = application {
-
     var windowRef: ComposeWindow? = null
 
     val mainWindowViewModel = remember { MainWindowViewModel }
@@ -43,21 +45,21 @@ fun main() = application {
 
     System.setProperty("apple.awt.application.appearance", "system")
 
-//    if (operationSystem.contains("win")) {
-//        Window(
-//            onCloseRequest = ::exitApplication,
-//            title = "Nebula Desktop - Admin Right Error",
-//            state = rememberWindowState(size = DpSize(Dp.Unspecified, Dp.Unspecified)),
-//        ) {
-//            window.isResizable = false
-//            Box(modifier = Modifier.padding(16.dp)) {
-//                Text(
-//                    text = "Nebula Desktop requires admin rights to run Please restart the application with admin rights."
-//                )
-//            }
-//        }
-//        return@application
-//    }
+    if (operationSystem.contains("win")) {
+        Window(
+            onCloseRequest = ::exitApplication,
+            title = "Nebula Desktop - Admin Right Error",
+            state = rememberWindowState(size = DpSize(Dp.Unspecified, Dp.Unspecified)),
+        ) {
+            window.isResizable = false
+            Box(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Nebula Desktop requires admin rights to run Please restart the application with admin rights."
+                )
+            }
+        }
+        return@application
+    }
 
     Window(
         icon = rememberVectorPainter(Icons.Filled.Shield),
@@ -117,3 +119,6 @@ fun isRunningAsAdmin(): Boolean = try {
 } catch (_: Exception) {
     false
 }
+
+suspend fun <T> runOnSwing(block: () -> T): T =
+    withContext(Dispatchers.Swing) { block() }

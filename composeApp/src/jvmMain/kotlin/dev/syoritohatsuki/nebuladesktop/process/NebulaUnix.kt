@@ -11,11 +11,23 @@ object NebulaUnix : NebulaProcess {
     override fun start(config: Path): PtyProcess? = builtProcess(*getLaunchCommandByOS(config))
 
     override fun stop(process: Process): Boolean {
-        process.destroyForcibly()
-        if (!process.waitFor(500, TimeUnit.MILLISECONDS)) {
-            Runtime.getRuntime().exec(getStopCommandByOS(process.pid()))
+        return try {
+            process.destroy()
+            if (process.waitFor(250, TimeUnit.MILLISECONDS)) return true
+
+            process.destroyForcibly()
+            if (process.waitFor(250, TimeUnit.MILLISECONDS)) return true
+
+            try {
+                ProcessBuilder(*getStopCommandByOS(process.pid()))
+                    .redirectErrorStream(true)
+                    .start()
+            } catch (_: Exception) {}
+
+            true
+        } catch (_: Exception) {
+            false
         }
-        return process.waitFor() == 0
     }
 
     private fun builtProcess(vararg commands: String): PtyProcess? = try {
@@ -46,18 +58,14 @@ object NebulaUnix : NebulaProcess {
     }
 
     private fun getStopCommandByOS(pid: Long): Array<String> {
-        val osProperty = System.getProperty("os.name").lowercase()
-
+        val os = System.getProperty("os.name").lowercase()
         return when {
-            osProperty.contains("nux") -> arrayOf(
-                "pkexec", "kill", "-TERM", pid.toString()
+            os.contains("nux") -> arrayOf("pkexec", "bash", "-lc", "kill -TERM $pid || true")
+            os.contains("mac") -> arrayOf(
+                "osascript", "-e", "do shell script \"kill -TERM $pid\" with administrator privileges"
             )
 
-            osProperty.contains("mac") -> arrayOf(
-                "osascript", "-e", "'do shell script \"kill -TERM $pid\" with administrator privileges'"
-            )
-
-            else -> throw UnsupportedOperationException("Unknown OS: $osProperty, please contact support")
+            else -> throw UnsupportedOperationException("Unknown OS: $os, please contact support")
         }
     }
 }

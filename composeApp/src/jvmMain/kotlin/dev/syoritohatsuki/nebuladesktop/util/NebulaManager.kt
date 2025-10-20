@@ -8,131 +8,172 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.nio.file.Paths
+import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 object NebulaManager {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    private val _connections: MutableStateFlow<List<NebulaConnection>> = MutableStateFlow(
-        listOf(
-            NebulaConnection(
-                name = "Linux Test Connection",
-                configPath = Paths.get(System.getProperty("user.home"), ".config", "nebula", "nebula.yml"),
-            ),
-            NebulaConnection(
-                name = "Windows Test Connection",
-                configPath = Paths.get(
-                    System.getenv("APPDATA") ?: System.getProperty("user.home"), "NebulaTray", "configs", "nebula.yml"
-                ),
-            )
-        )
-    )
+    private val _connections: MutableStateFlow<List<NebulaConnection>> =
+        MutableStateFlow(StorageManager.loadConnections())
 
     val connections: StateFlow<List<NebulaConnection>> = _connections.asStateFlow()
 
     init {
         Runtime.getRuntime().addShutdownHook(Thread {
-            _connections.value.forEach { stopConnection(it.name) }
+            _connections.value.forEach { stopConnection(it.configPath) }
         })
     }
 
-    fun addConnection(connection: NebulaConnection): Boolean {
-        if (_connections.value.any { it.name == connection.name }) return false
-        _connections.update { it + connection }
+    fun addConnection(configFile: File): Boolean {
+        if (_connections.value.any { it.configPath.absolutePathString() == configFile.absolutePath }) return false
+
+        val newConnection = NebulaConnection(
+            name = configFile.nameWithoutExtension,
+            configPath = configFile.toPath(),
+        )
+
+        _connections.update { it + newConnection }
+        StorageManager.updateConnectionFile(_connections.value)
         return true
     }
 
-    fun startConnection(name: String) {
-        val connection = _connections.value.find { it.name == name } ?: return
-        if (connection.status.value == NebulaConnection.ConnectionStatus.ON) {
-            connection.emitLog("Already connected".toAnnotatedString())
-            return
-        }
+    fun startConnection(configFilePath: Path) {
+        val conn = _connections.value.find { it.configPath.absolutePathString() == configFilePath.absolutePathString() }
+            ?: return
+        if (conn.status.value == NebulaConnection.ConnectionStatus.ENABLED || conn.status.value == NebulaConnection.ConnectionStatus.STARTING) return
 
-        val os = System.getProperty("os.name").lowercase()
         scope.launch {
+            conn.setStatus(NebulaConnection.ConnectionStatus.STARTING)
+            emitListIdentity()
+
+            val os = System.getProperty("os.name").lowercase()
+            var proc: Process?
+
             try {
-                var currentProcess: Process? = when {
-                    os.contains("win") -> NebulaWinshit.start(connection.configPath)
-                    os.contains("nux") || os.contains("mac") -> NebulaUnix.start(connection.configPath)
-                    else -> throw UnsupportedOperationException("Unsupported OS: $os, please contact support")
+                proc = when {
+                    os.contains("win") -> NebulaWinshit.start(conn.configPath)
+                    os.contains("nux") || os.contains("mac") -> NebulaUnix.start(conn.configPath)
+                    else -> null
                 }
 
-                if (currentProcess == null) {
-                    connection.emitLog("Failed to start process".toAnnotatedString())
+                if (proc == null) {
+                    conn.emitLog("Failed to start process".toAnnotatedString())
+                    conn.setStatus(NebulaConnection.ConnectionStatus.DISABLED)
+                    emitListIdentity()
                     return@launch
                 }
 
-                connection.process = currentProcess
-                connection.setStatus(NebulaConnection.ConnectionStatus.ON)
+                conn.process = proc
                 emitListIdentity()
 
-                while (currentProcess != null) {
-                    val reader = BufferedReader(InputStreamReader(currentProcess.inputStream))
-                    var restartRequired = false
-
-                    reader.forEachLine { line ->
-                        connection.emitLog(line.ansiToAnnotatedString())
-                        if (line.contains("operation not permitted", ignoreCase = true)) {
-                            connection.emitLog("Permission issue detected, restarting with elevation...".toAnnotatedString())
-                            currentProcess?.destroy()
-                            restartRequired = true
-                            return@forEachLine
-                        }
+                val outReader = launch {
+                    proc.inputStream.bufferedReader().forEachLine { line ->
+                        conn.emitLog(line.ansiToAnnotatedString())
                     }
+                }
 
-                    currentProcess.waitFor()
+                val errReader = launch {
+                    proc.errorStream.bufferedReader().forEachLine { line ->
+                        conn.emitLog(line.ansiToAnnotatedString())
+                    }
+                }
 
-                    if (restartRequired) {
-                        currentProcess = when {
-                            os.contains("win") -> NebulaWinshit.start(connection.configPath)
-                            os.contains("nux") || os.contains("mac") -> NebulaUnix.start(connection.configPath)
-                            else -> throw UnsupportedOperationException("Unsupported OS: $os, please contact support")
-                        }
-                        if (currentProcess == null) break
-                        connection.process = currentProcess
-                        connection.setStatus(NebulaConnection.ConnectionStatus.ON)
-                        emitListIdentity()
-                    } else {
+                val startedAt = System.currentTimeMillis()
+                val deadline = startedAt + 5000L
+                var sawOutput = false
+
+                val outputWatcher = launch {
+                    while (isActive && System.currentTimeMillis() < deadline) {
+                        if (!proc.isAlive) break
+                        delay(150)
+                        sawOutput = true
                         break
                     }
                 }
+
+                while (System.currentTimeMillis() < deadline) {
+                    if (!proc.isAlive) break
+                    if (sawOutput) break
+                    delay(50)
+                }
+                outputWatcher.cancel()
+
+                if (!proc.isAlive) {
+                    conn.setStatus(NebulaConnection.ConnectionStatus.DISABLED)
+                    conn.process = null
+                    emitListIdentity()
+                    outReader.cancel()
+                    errReader.cancel()
+                    return@launch
+                }
+
+                conn.setStatus(NebulaConnection.ConnectionStatus.ENABLED)
+                emitListIdentity()
+
+                launch {
+                    proc.waitFor()
+                    conn.setStatus(NebulaConnection.ConnectionStatus.DISABLED)
+                    conn.process = null
+                    emitListIdentity()
+                    outReader.cancel()
+                    errReader.cancel()
+                }
             } catch (e: Exception) {
-                connection.emitLog("Failed to start Nebula: ${e.message}".toAnnotatedString())
-            } finally {
-                connection.setStatus(NebulaConnection.ConnectionStatus.OFF)
-                connection.process = null
+                conn.emitLog("Start error: ${e.message}".toAnnotatedString())
+                conn.setStatus(NebulaConnection.ConnectionStatus.DISABLED)
+                conn.process = null
                 emitListIdentity()
             }
         }
     }
 
-    fun stopConnection(name: String) {
-        val conn = _connections.value.find { it.name == name } ?: return
-        val process = conn.process ?: return
-        try {
-            conn.emitLog("Stopping Nebula (pid=${process.pid()})...".toAnnotatedString())
-            process.destroy()
-            if (process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)) {
-                conn.setStatus(NebulaConnection.ConnectionStatus.OFF)
-                conn.process = null
+    fun stopConnection(configFilePath: Path) {
+        val conn = _connections.value.find { it.configPath.absolutePathString() == configFilePath.absolutePathString() }
+            ?: return
+        val proc = conn.process ?: run {
+            conn.setStatus(NebulaConnection.ConnectionStatus.DISABLED)
+            emitListIdentity()
+            return
+        }
+
+        scope.launch {
+            conn.emitLog("Stopping Nebula (pid=${proc.pid()})...".toAnnotatedString())
+            conn.setStatus(NebulaConnection.ConnectionStatus.STOPPING)
+            emitListIdentity()
+
+            NebulaUnix.stop(proc)
+
+            launch {
+                proc.inputStream.bufferedReader().forEachLine {
+                    conn.emitLog(it.ansiToAnnotatedString())
+                }
+            }
+
+            launch {
+                proc.errorStream.bufferedReader().forEachLine {
+                    conn.emitLog(it.ansiToAnnotatedString())
+                }
+            }
+
+            val deadline = System.currentTimeMillis() + 15_000 // 15s safety
+            while (proc.isAlive && System.currentTimeMillis() < deadline) {
+                delay(100)
+            }
+
+            if (proc.isAlive) {
+                conn.emitLog("Process did not exit in time; still running (pid=${proc.pid()}).".toAnnotatedString())
                 emitListIdentity()
-                return
+                return@launch
             }
-            when {
-                System.getProperty("os.name").lowercase().contains("win") -> NebulaWinshit.stop(process)
-                else -> NebulaUnix.stop(process)
-            }
-        } catch (e: Exception) {
-            conn.emitLog("Failed to stop Nebula: ${e.message}".toAnnotatedString())
-        } finally {
-            conn.setStatus(NebulaConnection.ConnectionStatus.OFF)
+
+            conn.setStatus(NebulaConnection.ConnectionStatus.DISABLED)
             conn.process = null
             emitListIdentity()
         }
     }
+
 
     private fun emitListIdentity() {
         _connections.update { it.toList() }
