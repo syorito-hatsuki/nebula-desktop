@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,10 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.syoritohatsuki.nebuladesktop.api.GithubApi
 import dev.syoritohatsuki.nebuladesktop.network.downloadFile
-import dev.syoritohatsuki.nebuladesktop.ui.BACKGROUND_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.PROGRESS_BAR_BACKGROUND_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.PROGRESS_BAR_COLOR
-import dev.syoritohatsuki.nebuladesktop.ui.TEXT_COLOR
+import dev.syoritohatsuki.nebuladesktop.ui.*
 import dev.syoritohatsuki.nebuladesktop.util.StorageManager.nebulaBinaryDirPath
 import dev.syoritohatsuki.nebuladesktop.util.StorageManager.nebulaBinaryPath
 import dev.syoritohatsuki.nebuladesktop.util.extractTarGz
@@ -82,30 +80,38 @@ fun NebulaDownloadDialog(onClose: () -> Unit) {
 
     LaunchedEffect(retryKey) { startBootstrap() }
 
-    Column(
-        modifier = Modifier.padding(16.dp).background(color = BACKGROUND_COLOR),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(progressText, color = TEXT_COLOR)
-        Spacer(Modifier.height(16.dp))
-        LinearProgressIndicator(
-            progress = progress.toFloat(),
-            modifier = Modifier.fillMaxWidth(),
-            color = PROGRESS_BAR_COLOR,
-            backgroundColor = PROGRESS_BAR_BACKGROUND_COLOR
-        )
-
-        if (errorMessage != null) {
+    Box(modifier = Modifier.fillMaxSize().background(color = BACKGROUND_COLOR)) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(progressText, color = TEXT_COLOR)
             Spacer(Modifier.height(16.dp))
-            Text(errorMessage!!, color = MaterialTheme.colors.error)
-            Spacer(Modifier.height(8.dp))
-            Button(onClick = { retryKey++ }) { Text("Retry") }
-        }
+            LinearProgressIndicator(
+                progress = progress.toFloat(),
+                color = PROGRESS_BAR_COLOR,
+                backgroundColor = PROGRESS_BAR_BACKGROUND_COLOR
+            )
 
-        if (done) {
+            if (errorMessage != null) {
+                Spacer(Modifier.height(16.dp))
+                Text(errorMessage!!, color = MaterialTheme.colors.error)
+                Spacer(Modifier.height(8.dp))
+                Button(
+                    onClick = { retryKey++ },
+                    colors = ButtonDefaults.buttonColors(containerColor = STOP_BUTTON_COLOR)
+                ) { Text("Retry") }
+            }
+
             Spacer(Modifier.height(16.dp))
-            Button(onClick = onClose) { Text("Close") }
+            Button(
+                onClick = onClose,
+                enabled = done,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ADD_BUTTON_COLOR
+                )
+            ) { Text("Close") }
         }
     }
 }

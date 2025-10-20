@@ -1,21 +1,18 @@
 package dev.syoritohatsuki.nebuladesktop
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import androidx.compose.ui.window.rememberWindowState
 import com.kdroid.composetray.utils.SingleInstanceManager
 import dev.syoritohatsuki.nebuladesktop.ui.BACKGROUND_COLOR
 import dev.syoritohatsuki.nebuladesktop.ui.MainTray
@@ -52,14 +49,21 @@ fun main() = application {
         Window(
             onCloseRequest = ::exitApplication,
             title = "Nebula Desktop - Admin Right Error",
-            state = rememberWindowState(size = DpSize(Dp.Unspecified, Dp.Unspecified)),
         ) {
             window.isResizable = false
-            Box(modifier = Modifier.padding(16.dp).background(color = BACKGROUND_COLOR)) {
-                Text(
-                    text = "Nebula Desktop requires admin rights to run Please restart the application with admin rights.",
-                    color = TEXT_COLOR,
-                )
+            window.minimumSize = Dimension(MIN_WIDTH / 2, MIN_HEIGHT / 2)
+
+            Box(modifier = Modifier.fillMaxSize().background(color = BACKGROUND_COLOR)) {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Nebula Desktop requires admin rights to run Please restart the application with admin rights.",
+                        color = TEXT_COLOR,
+                    )
+                }
             }
         }
         return@application
@@ -80,10 +84,10 @@ fun main() = application {
         !StorageManager.nebulaBinaryPath.toFile().exists() -> Window(
             onCloseRequest = {},
             title = "Nebula Downloader",
-            state = rememberWindowState(size = DpSize(Dp.Unspecified, Dp.Unspecified)),
         ) {
             window.isResizable = false
-            window.minimumSize = Dimension(MIN_WIDTH, MIN_HEIGHT)
+            window.maximumSize = Dimension(MIN_WIDTH / 2, MIN_HEIGHT / 2)
+
             NebulaDownloadDialog(onClose = {
                 this.window.dispose()
                 showTray = true
