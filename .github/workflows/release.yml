@@ -52,23 +52,23 @@ jobs:
   # -------------------- #
   # 3. macOS Build
   # -------------------- #
-  build-macos:
-    runs-on: macos-latest
-    needs: version
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-      - run: ./gradlew :composeApp:packageReleaseDistributionForCurrentOS
-      - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-build
-          path: |
-            composeApp/build/compose/releases/main-release/dmg/*.dmg
-            composeApp/build/compose/releases/main-release/pkg/*.pkg
+  # build-macos:
+  #   runs-on: macos-latest
+  #   needs: version
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-java@v4
+  #       with:
+  #         distribution: temurin
+  #         java-version: 21
+  #     - run: ./gradlew :composeApp:packageReleaseDistributionForCurrentOS
+  #     - name: Upload macOS artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: macos-build
+  #         path: |
+  #           composeApp/build/compose/releases/main-release/dmg/*.dmg
+  #           composeApp/build/compose/releases/main-release/pkg/*.pkg
 
   # -------------------- #
   # 4. Windows Build
