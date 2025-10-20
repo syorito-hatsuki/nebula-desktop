@@ -101,7 +101,8 @@ compose {
                 outputBaseDir.set(project.layout.buildDirectory.dir("compose/releases"))
 
                 linux {
-                    iconFile.set(project.file("src/jvmMain/resources/icon.svg"))
+                    shortcut = true
+                    iconFile.set(project.file("src/jvmMain/resources/icon.png"))
                     rpmLicenseType = "MIT"
                     appCategory = "Utility"
                     menuGroup = "Utility"
