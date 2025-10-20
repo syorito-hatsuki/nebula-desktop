@@ -55,7 +55,7 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
     ) { file ->
         file?.let {
             mainWindowViewModel.addConnection(it.file)
-        } ?: error("File not found or something went wrong")
+        }
     }
 
 

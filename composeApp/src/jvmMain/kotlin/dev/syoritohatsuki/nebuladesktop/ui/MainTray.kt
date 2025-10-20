@@ -50,7 +50,9 @@ fun ApplicationScope.MainTray(mainWindowViewModel: MainWindowViewModel = viewMod
     val filePicker = rememberFilePickerLauncher(
         title = "Select Nebula Config", type = FileKitType.File(extensions = listOf("yml", "yaml"))
     ) { platformFile ->
-        println(platformFile?.file?.readText())
+        platformFile?.let {
+            mainWindowViewModel.addConnection(it.file)
+        }
     }
 
     Tray(
