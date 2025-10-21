@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.syoritohatsuki.nebuladesktop.BuildKonfig
+import dev.syoritohatsuki.nebuladesktop.api.GithubApi
 import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection.ConnectionStatus
 import dev.syoritohatsuki.nebuladesktop.runOnSwing
 import dev.syoritohatsuki.nebuladesktop.ui.*
@@ -40,6 +41,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
     var selectedName by remember { mutableStateOf<String?>(null) }
+    var remoteAppVersion by remember { mutableStateOf("") }
 
     val scope = rememberCoroutineScope()
 
@@ -60,11 +62,17 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
         }
     }
 
-
     LaunchedEffect(selectedConnection?.name) {
         selectedConnection?.let {
             mainWindowViewModel.preloadLogs(it)
             mainWindowViewModel.observeLogs(it)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        scope.launch {
+            val latestTag = GithubApi.fetchLatestRelease("syorito-hatsuki/nebula-desktop").tagName
+            remoteAppVersion = latestTag
         }
     }
 
@@ -138,7 +146,37 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
             ) {
                 Text(text = "Add Connection", color = TEXT_COLOR)
             }
-            Text(text = "Build: ${BuildKonfig.appVersion}", color = TEXT_COLOR_SECONDARY, textAlign = TextAlign.Center, fontSize = 10.sp, modifier = Modifier.padding(4.dp).fillMaxWidth())
+            if (BuildKonfig.appVersion == remoteAppVersion) {
+                Text(
+                    text = "Build: ${BuildKonfig.appVersion}",
+                    color = TEXT_COLOR_SECONDARY,
+                    textAlign = TextAlign.Center,
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(4.dp).fillMaxWidth()
+                )
+            } else {
+                Text(
+                    text = "Update available :)",
+                    color = TEXT_COLOR,
+                    textAlign = TextAlign.Center,
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(4.dp).fillMaxWidth().clickable {
+                        val url = "https://github.com/syorito-hatsuki/nebula-desktop/releases"
+                        try {
+                            val os = System.getProperty("os.name").lowercase()
+                            Runtime.getRuntime().exec(
+                                when {
+                                    os.contains("linux") -> arrayOf("xdg-open", url)
+                                    os.contains("mac") -> arrayOf("open", url)
+                                    os.contains("win") -> arrayOf("rundll32", "url.dll,FileProtocolHandler", url)
+                                    else -> error("Unsupported OS: $os")
+                                }
+                            )
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    })
+            }
         }
 
         Box(
