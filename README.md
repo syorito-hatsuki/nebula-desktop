@@ -88,6 +88,7 @@ Nebula Desktop is a simple application for Windows and Linux that work as wrappe
 - [ ] Logs filter
 - [ ] Improve compatibility
 - [ ] UX Settings
+- [ ] Internal config editor
 
 See the [open issues](https://github.com/syorito-hatsuki/nebula-desktop/issues) for a full list of proposed
 features (and known issues).
