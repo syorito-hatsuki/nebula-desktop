@@ -1,3 +1,4 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
@@ -8,6 +9,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.serialization)
+    id("com.codingfeline.buildkonfig") version "0.17.1"
 }
 
 val appVersion = rootProject.extra.get("app.version") as String
@@ -61,6 +63,13 @@ kotlin {
                 implementation(libs.pty4j)
             }
         }
+    }
+}
+
+buildkonfig {
+    packageName = "dev.syoritohatsuki.nebuladesktop"
+    defaultConfigs {
+        buildConfigField(STRING, "appVersion", appVersion)
     }
 }
 

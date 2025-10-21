@@ -24,9 +24,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.syoritohatsuki.nebuladesktop.BuildKonfig
 import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection.ConnectionStatus
 import dev.syoritohatsuki.nebuladesktop.runOnSwing
 import dev.syoritohatsuki.nebuladesktop.ui.*
@@ -134,8 +136,9 @@ fun MainWindow(mainWindowViewModel: MainWindowViewModel) {
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = ADD_BUTTON_COLOR)
             ) {
-                Text("Add Connection", color = TEXT_COLOR)
+                Text(text = "Add Connection", color = TEXT_COLOR)
             }
+            Text(text = "Build: ${BuildKonfig.appVersion}", color = TEXT_COLOR_SECONDARY, textAlign = TextAlign.Center, fontSize = 10.sp, modifier = Modifier.padding(4.dp).fillMaxWidth())
         }
 
         Box(
