@@ -136,7 +136,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 [license-shield]: https://img.shields.io/github/license/syorito-hatsuki/nebula-desktop.svg?style=for-the-badge
 
-[license-url]: https://github.com/syorito-hatsuki/nebula-desktop/blob/master/LICENSE.txt
+[license-url]: https://github.com/syorito-hatsuki/nebula-desktop/blob/master/LICENSE
 
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 
