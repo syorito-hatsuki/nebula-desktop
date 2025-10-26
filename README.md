@@ -148,7 +148,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 [kotlin-multiplatform-url]: https://www.jetbrains.com/kotlin-multiplatform/
 
-[kotlin-compose-shield]: https://img.shields.io/badge/-Ktor-black.svg?style=for-the-badge&logo=jetpackcompose&colorB=4285F4&logoColor=white
+[kotlin-compose-shield]: https://img.shields.io/badge/-Kotlin%20Compose-black.svg?style=for-the-badge&logo=jetpackcompose&colorB=4285F4&logoColor=white
 
 [kotlin-compose-url]: https://www.jetbrains.com/compose-multiplatform/
 
