@@ -37,6 +37,7 @@ import dev.syoritohatsuki.nebuladesktop.api.GithubApi
 import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection.ConnectionStatus
 import dev.syoritohatsuki.nebuladesktop.runOnSwing
 import dev.syoritohatsuki.nebuladesktop.ui.*
+import dev.syoritohatsuki.nebuladesktop.ui.window.main.components.ConnectButton
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -210,9 +211,6 @@ fun MainWindow(
                 modifier = Modifier.fillMaxHeight().fillMaxWidth().background(BACKGROUND_COLOR).padding(16.dp)
             ) {
                 selectedConnection?.let { connection ->
-                    val statusFlow = statusFlows[connection.name]
-                    val status by (statusFlow ?: MutableStateFlow(ConnectionStatus.DISABLED)).collectAsState()
-
                     Column(modifier = Modifier.fillMaxSize()) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -238,29 +236,7 @@ fun MainWindow(
                             }
 
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                when (status) {
-                                    ConnectionStatus.DISABLED -> Button(
-                                        onClick = { mainWindowViewModel.startConnection(connection.configPath) },
-                                        colors = ButtonDefaults.buttonColors(containerColor = START_BUTTON_COLOR)
-                                    ) { Text("Start", color = TEXT_COLOR) }
-
-                                    ConnectionStatus.STARTING -> Button(
-                                        onClick = {},
-                                        enabled = false,
-                                        colors = ButtonDefaults.buttonColors(disabledContainerColor = AWAIT_BUTTON_COLOR)
-                                    ) { Text("Starting…", color = TEXT_COLOR) }
-
-                                    ConnectionStatus.ENABLED -> Button(
-                                        onClick = { mainWindowViewModel.stopConnection(connection.configPath) },
-                                        colors = ButtonDefaults.buttonColors(containerColor = STOP_BUTTON_COLOR)
-                                    ) { Text("Stop", color = TEXT_COLOR) }
-
-                                    ConnectionStatus.STOPPING -> Button(
-                                        enabled = false,
-                                        onClick = {},
-                                        colors = ButtonDefaults.buttonColors(disabledContainerColor = AWAIT_BUTTON_COLOR)
-                                    ) { Text("Stopping…", color = TEXT_COLOR) }
-                                }
+                                ConnectButton(mainWindowViewModel, connection, statusFlows)
                             }
                         }
 
