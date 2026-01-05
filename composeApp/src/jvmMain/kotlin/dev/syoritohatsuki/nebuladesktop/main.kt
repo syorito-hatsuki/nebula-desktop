@@ -13,11 +13,11 @@ import dev.syoritohatsuki.nebuladesktop.ui.dialog.NebulaDownloadDialog
 import dev.syoritohatsuki.nebuladesktop.ui.window.main.MainWindow
 import dev.syoritohatsuki.nebuladesktop.ui.window.main.MainWindowViewModel
 import dev.syoritohatsuki.nebuladesktop.util.StorageManager
+import dev.syoritohatsuki.nebuladesktop.util.focusAppWindow
 import dev.syoritohatsuki.nebuladesktop.util.isRequireAdminRights
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.swing.Swing
 import kotlinx.coroutines.withContext
-import java.awt.Frame
 
 const val MIN_WIDTH = 640
 const val MIN_HEIGHT = 360
@@ -60,15 +60,6 @@ fun main() = application {
         isMainWindowVisible = true
         focusAppWindow(mainWindowRef)
     })
-}
-
-private fun focusAppWindow(window: ComposeWindow?) {
-    if (window == null) return
-    if (!window.isVisible) window.isVisible = true
-    if (window.state == Frame.ICONIFIED) window.state = Frame.NORMAL
-
-    window.toFront()
-    window.requestFocus()
 }
 
 suspend fun <T> runOnSwing(block: () -> T): T = withContext(Dispatchers.Swing) { block() }
