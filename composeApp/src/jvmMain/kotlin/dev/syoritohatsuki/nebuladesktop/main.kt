@@ -23,13 +23,13 @@ const val MIN_WIDTH = 640
 const val MIN_HEIGHT = 360
 
 fun main() = application {
+    System.setProperty("apple.awt.application.appearance", "system")
+
     var mainWindowRef by remember { mutableStateOf<ComposeWindow?>(null) }
     var isMainWindowVisible by remember { mutableStateOf(false) }
     var showTray by remember { mutableStateOf(false) }
 
     val mainWindowViewModel = remember { MainWindowViewModel }
-
-    System.setProperty("apple.awt.application.appearance", "system")
 
     if (isRequireAdminRights()) {
         AdminRequiredWarning(::exitApplication)
@@ -44,9 +44,9 @@ fun main() = application {
     )
 
     when {
-        !StorageManager.nebulaBinaryPath.toFile().exists() -> NebulaDownloadDialog(onClose = {
+        !StorageManager.nebulaBinaryPath.toFile().exists() -> NebulaDownloadDialog {
             showTray = true
-        })
+        }
 
         else -> showTray = true
     }
@@ -56,10 +56,10 @@ fun main() = application {
         focusAppWindow(mainWindowRef)
     })) return@application exitApplication()
 
-    MainTray(showTray, mainWindowViewModel, openWindow = {
+    MainTray(showTray, mainWindowViewModel) {
         isMainWindowVisible = true
         focusAppWindow(mainWindowRef)
-    })
+    }
 }
 
 suspend fun <T> runOnSwing(block: () -> T): T = withContext(Dispatchers.Swing) { block() }
