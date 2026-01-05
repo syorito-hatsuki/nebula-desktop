@@ -14,8 +14,8 @@ import dev.syoritohatsuki.nebuladesktop.MIN_WIDTH
 import dev.syoritohatsuki.nebuladesktop.ui.BACKGROUND_COLOR
 import dev.syoritohatsuki.nebuladesktop.ui.TEXT_COLOR_SECONDARY
 import dev.syoritohatsuki.nebuladesktop.ui.window.main.components.ContainerHeader
-import dev.syoritohatsuki.nebuladesktop.ui.window.main.components.LeftPanel
 import dev.syoritohatsuki.nebuladesktop.ui.window.main.components.LogsView
+import dev.syoritohatsuki.nebuladesktop.ui.window.main.components.left.LeftPanel
 import nebula_desktop.composeapp.generated.resources.Res
 import nebula_desktop.composeapp.generated.resources.icon
 import org.jetbrains.compose.resources.painterResource
@@ -61,9 +61,7 @@ fun MainWindow(
                 selectedName = it
             }
 
-            Box(
-                modifier = Modifier.fillMaxHeight().fillMaxWidth().background(BACKGROUND_COLOR).padding(16.dp)
-            ) {
+            Box(modifier = Modifier.fillMaxHeight().fillMaxWidth().background(BACKGROUND_COLOR).padding(16.dp)) {
                 selectedConnection?.let { connection ->
                     Column(modifier = Modifier.fillMaxSize()) {
                         ContainerHeader(mainWindowViewModel, connection, statusFlows)
