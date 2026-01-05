@@ -22,8 +22,6 @@ import java.awt.Frame
 const val MIN_WIDTH = 640
 const val MIN_HEIGHT = 360
 
-val operationSystem = System.getProperty("os.name").lowercase()
-
 fun main() = application {
     var mainWindowRef by remember { mutableStateOf<ComposeWindow?>(null) }
     var isMainWindowVisible by remember { mutableStateOf(false) }

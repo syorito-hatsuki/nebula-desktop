@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import org.jetbrains.skiko.OS
+import org.jetbrains.skiko.hostOs
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -48,13 +50,12 @@ object NebulaManager {
             conn.setStatus(NebulaConnection.ConnectionStatus.STARTING)
             emitListIdentity()
 
-            val os = System.getProperty("os.name").lowercase()
             var proc: Process?
 
             try {
-                proc = when {
-                    os.contains("win") -> NebulaWinshit.start(conn.configPath)
-                    os.contains("nux") || os.contains("mac") -> NebulaUnix.start(conn.configPath)
+                proc = when (hostOs) {
+                    OS.Windows -> NebulaWinshit.start(conn.configPath)
+                    OS.Linux, OS.MacOS -> NebulaUnix.start(conn.configPath)
                     else -> null
                 }
 
