@@ -3,6 +3,8 @@ package dev.syoritohatsuki.nebuladesktop.process
 import com.pty4j.PtyProcess
 import com.pty4j.PtyProcessBuilder
 import dev.syoritohatsuki.nebuladesktop.util.StorageManager
+import org.jetbrains.skiko.OS
+import org.jetbrains.skiko.hostOs
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.absolutePathString
@@ -39,33 +41,24 @@ object NebulaUnix : NebulaProcess {
         null
     }
 
-    private fun getLaunchCommandByOS(config: Path): Array<String> {
-        val osProperty = System.getProperty("os.name").lowercase()
+    private fun getLaunchCommandByOS(config: Path): Array<String> = when (hostOs) {
+        OS.Linux -> arrayOf(
+            "pkexec", StorageManager.nebulaBinaryPath.absolutePathString(), "-config", config.toString()
+        )
 
-        return when {
-            osProperty.contains("nux") -> arrayOf(
-                "pkexec", StorageManager.nebulaBinaryPath.absolutePathString(), "-config", config.toString()
-            )
+        OS.MacOS -> arrayOf(
+            "osascript",
+            "-e",
+            "do shell script \"'${StorageManager.nebulaBinaryPath.absolutePathString()}' -config '${config}'\" with administrator privileges"
+        )
 
-            osProperty.contains("mac") -> arrayOf(
-                "osascript",
-                "-e",
-                "do shell script \"'${StorageManager.nebulaBinaryPath.absolutePathString()}' -config '${config}'\" with administrator privileges"
-            )
-
-            else -> throw UnsupportedOperationException("Unknown OS: $osProperty, please contact support")
-        }
+        else -> throw UnsupportedOperationException("Unsupported OS: $hostOs, please contact support")
     }
 
-    private fun getStopCommandByOS(pid: Long): Array<String> {
-        val os = System.getProperty("os.name").lowercase()
-        return when {
-            os.contains("nux") -> arrayOf("pkexec", "bash", "-lc", "kill -TERM $pid || true")
-            os.contains("mac") -> arrayOf(
-                "osascript", "-e", "do shell script \"kill -TERM $pid\" with administrator privileges"
-            )
+    private fun getStopCommandByOS(pid: Long): Array<String> = when (hostOs) {
+        OS.Linux -> arrayOf("pkexec", "bash", "-lc", "kill -TERM $pid || true")
+        OS.MacOS -> arrayOf("osascript", "-e", "do shell script \"kill -TERM $pid\" with administrator privileges")
 
-            else -> throw UnsupportedOperationException("Unknown OS: $os, please contact support")
-        }
+        else -> throw UnsupportedOperationException("Unsupported OS: $hostOs, please contact support")
     }
 }

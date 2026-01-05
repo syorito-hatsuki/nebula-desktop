@@ -44,6 +44,8 @@ import kotlinx.coroutines.launch
 import nebula_desktop.composeapp.generated.resources.Res
 import nebula_desktop.composeapp.generated.resources.icon
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.skiko.OS
+import org.jetbrains.skiko.hostOs
 import java.awt.Dimension
 
 @Composable
@@ -189,13 +191,12 @@ fun MainWindow(
                         modifier = Modifier.padding(4.dp).fillMaxWidth().clickable {
                             val url = "https://github.com/syorito-hatsuki/nebula-desktop/releases"
                             try {
-                                val os = System.getProperty("os.name").lowercase()
                                 Runtime.getRuntime().exec(
-                                    when {
-                                        os.contains("linux") -> arrayOf("xdg-open", url)
-                                        os.contains("mac") -> arrayOf("open", url)
-                                        os.contains("win") -> arrayOf("rundll32", "url.dll,FileProtocolHandler", url)
-                                        else -> error("Unsupported OS: $os")
+                                    when(hostOs) {
+                                        OS.Linux -> arrayOf("xdg-open", url)
+                                        OS.MacOS -> arrayOf("open", url)
+                                        OS.Windows -> arrayOf("rundll32", "url.dll,FileProtocolHandler", url)
+                                        else -> error("Unsupported OS: $hostOs")
                                     }
                                 )
                             } catch (e: Exception) {
