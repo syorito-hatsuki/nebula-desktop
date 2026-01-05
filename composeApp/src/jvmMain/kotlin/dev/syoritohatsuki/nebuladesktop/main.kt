@@ -5,22 +5,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.kdroid.composetray.utils.SingleInstanceManager
 import dev.syoritohatsuki.nebuladesktop.ui.MainTray
+import dev.syoritohatsuki.nebuladesktop.ui.dialog.AdminRequiredWarning
 import dev.syoritohatsuki.nebuladesktop.ui.dialog.NebulaDownloadDialog
-import dev.syoritohatsuki.nebuladesktop.ui.dialog.WindowsAdminWarning
-import dev.syoritohatsuki.nebuladesktop.ui.main.MainWindow
-import dev.syoritohatsuki.nebuladesktop.ui.main.MainWindowViewModel
+import dev.syoritohatsuki.nebuladesktop.ui.window.main.MainWindow
+import dev.syoritohatsuki.nebuladesktop.ui.window.main.MainWindowViewModel
 import dev.syoritohatsuki.nebuladesktop.util.StorageManager
+import dev.syoritohatsuki.nebuladesktop.util.isRequireAdminRights
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.swing.Swing
 import kotlinx.coroutines.withContext
-import nebula_desktop.composeapp.generated.resources.Res
-import nebula_desktop.composeapp.generated.resources.icon
-import org.jetbrains.compose.resources.painterResource
-import java.awt.Dimension
 import java.awt.Frame
 
 const val MIN_WIDTH = 640
@@ -29,72 +25,43 @@ const val MIN_HEIGHT = 360
 val operationSystem = System.getProperty("os.name").lowercase()
 
 fun main() = application {
-    var windowRef: ComposeWindow? = null
+    var mainWindowRef by remember { mutableStateOf<ComposeWindow?>(null) }
+    var isMainWindowVisible by remember { mutableStateOf(false) }
+    var showTray by remember { mutableStateOf(false) }
 
     val mainWindowViewModel = remember { MainWindowViewModel }
 
-    var windowVisible by remember { mutableStateOf(false) }
-    var showTray by remember { mutableStateOf(false) }
-
     System.setProperty("apple.awt.application.appearance", "system")
 
-    if (operationSystem.contains("win") && !isRunningAsAdmin()) {
-        Window(
-            onCloseRequest = ::exitApplication,
-            title = "Nebula Desktop - Admin Right Error",
-        ) {
-            window.isResizable = false
-            window.minimumSize = Dimension(MIN_WIDTH / 2, MIN_HEIGHT / 2)
-
-            WindowsAdminWarning()
-        }
+    if (isRequireAdminRights()) {
+        AdminRequiredWarning(::exitApplication)
         return@application
     }
 
-    Window(
-        icon = painterResource(Res.drawable.icon),
-        onCloseRequest = { windowVisible = false },
-        title = "Nebula Desktop",
-        visible = windowVisible,
-    ) {
-        window.minimumSize = Dimension(MIN_WIDTH, MIN_HEIGHT)
-        MainWindow(mainWindowViewModel)
-        windowRef = window
-    }
+    MainWindow(
+        windowRef = { mainWindowRef = it },
+        windowVisible = isMainWindowVisible,
+        onCloseRequest = { isMainWindowVisible = false },
+        mainWindowViewModel = mainWindowViewModel
+    )
 
     when {
-        !StorageManager.nebulaBinaryPath.toFile().exists() -> Window(
-            onCloseRequest = {},
-            title = "Nebula Downloader",
-        ) {
-            window.isResizable = false
-            window.maximumSize = Dimension(MIN_WIDTH / 2, MIN_HEIGHT / 2)
-
-            NebulaDownloadDialog(onClose = {
-                this.window.dispose()
-                showTray = true
-            })
-        }
+        !StorageManager.nebulaBinaryPath.toFile().exists() -> NebulaDownloadDialog(onClose = {
+            showTray = true
+        })
 
         else -> showTray = true
     }
 
-    val isSingleInstance = SingleInstanceManager.isSingleInstance(onRestoreRequest = {
-        windowVisible = true
-        focusAppWindow(windowRef)
+    if (!SingleInstanceManager.isSingleInstance(onRestoreRequest = {
+        isMainWindowVisible = true
+        focusAppWindow(mainWindowRef)
+    })) return@application exitApplication()
+
+    MainTray(showTray, mainWindowViewModel, openWindow = {
+        isMainWindowVisible = true
+        focusAppWindow(mainWindowRef)
     })
-
-    if (!isSingleInstance) {
-        exitApplication()
-        return@application
-    }
-
-    if (showTray) {
-        MainTray(mainWindowViewModel, openWindow = {
-            windowVisible = true
-            focusAppWindow(windowRef)
-        })
-    }
 }
 
 private fun focusAppWindow(window: ComposeWindow?) {
@@ -104,16 +71,6 @@ private fun focusAppWindow(window: ComposeWindow?) {
 
     window.toFront()
     window.requestFocus()
-}
-
-fun isRunningAsAdmin(): Boolean = try {
-    ProcessBuilder(
-        "powershell",
-        "-Command",
-        "[bool]([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)"
-    ).start().inputStream.bufferedReader().readText().trim().equals("True", ignoreCase = true)
-} catch (_: Exception) {
-    false
 }
 
 suspend fun <T> runOnSwing(block: () -> T): T = withContext(Dispatchers.Swing) { block() }

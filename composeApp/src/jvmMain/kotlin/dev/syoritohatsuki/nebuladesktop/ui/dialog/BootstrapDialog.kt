@@ -11,6 +11,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Window
+import dev.syoritohatsuki.nebuladesktop.MIN_HEIGHT
+import dev.syoritohatsuki.nebuladesktop.MIN_WIDTH
 import dev.syoritohatsuki.nebuladesktop.api.GithubApi
 import dev.syoritohatsuki.nebuladesktop.network.downloadFile
 import dev.syoritohatsuki.nebuladesktop.ui.*
@@ -19,6 +22,9 @@ import dev.syoritohatsuki.nebuladesktop.util.StorageManager.nebulaBinaryPath
 import dev.syoritohatsuki.nebuladesktop.util.extractTarGz
 import dev.syoritohatsuki.nebuladesktop.util.extractZip
 import kotlinx.coroutines.launch
+import org.jetbrains.skiko.OS
+import org.jetbrains.skiko.hostOs
+import java.awt.Dimension
 
 @Composable
 fun NebulaDownloadDialog(onClose: () -> Unit) {
@@ -30,18 +36,14 @@ fun NebulaDownloadDialog(onClose: () -> Unit) {
 
     val scope = rememberCoroutineScope()
 
-    fun startBootstrap() {
+    val releaseNameForPlatform: String = when(hostOs) {
+        OS.Windows -> "windows-amd64.zip"
+        OS.MacOS -> "darwin.zip"
+        OS.Linux -> "linux-amd64.tar.gz"
+        else -> error("Unsupported OS")
+    }
 
-        fun getReleaseNameForPlatform(): String {
-            val os = System.getProperty("os.name").lowercase()
-            return when {
-                os.contains("win") -> "windows-amd64.zip"
-                os.contains("mac") -> "darwin.zip"
-                os.contains("nux") || os.contains("linux") -> "linux-amd64.tar.gz"
-                else -> error("Unsupported OS")
-            }
-        }
-
+    LaunchedEffect(retryKey) {
         scope.launch {
             try {
                 errorMessage = null
@@ -53,8 +55,8 @@ fun NebulaDownloadDialog(onClose: () -> Unit) {
                 targetDir.toFile().mkdirs()
 
                 val release = GithubApi.fetchLatestRelease("slackhq/nebula")
-                val platformAsset = release.assets.firstOrNull { it.name.contains(getReleaseNameForPlatform()) }
-                    ?: error("No suitable asset for ${getReleaseNameForPlatform()}")
+                val platformAsset = release.assets.firstOrNull { it.name.contains(releaseNameForPlatform) }
+                    ?: error("No suitable asset for ${releaseNameForPlatform}")
 
                 val archiveFile = targetDir.resolve(platformAsset.name)
                 progressText = "Downloading ${platformAsset.name}..."
@@ -78,40 +80,48 @@ fun NebulaDownloadDialog(onClose: () -> Unit) {
         }
     }
 
-    LaunchedEffect(retryKey) { startBootstrap() }
+    Window(
+        onCloseRequest = {},
+        title = "Nebula Downloader",
+    ) {
+        window.isResizable = false
+        window.maximumSize = Dimension(MIN_WIDTH / 2, MIN_HEIGHT / 2)
 
-    Box(modifier = Modifier.fillMaxSize().background(color = BACKGROUND_COLOR)) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(progressText, color = TEXT_COLOR)
-            Spacer(Modifier.height(16.dp))
-            LinearProgressIndicator(
-                progress = progress.toFloat(),
-                color = PROGRESS_BAR_COLOR,
-                backgroundColor = PROGRESS_BAR_BACKGROUND_COLOR
-            )
-
-            if (errorMessage != null) {
+        Box(modifier = Modifier.fillMaxSize().background(color = BACKGROUND_COLOR)) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(progressText, color = TEXT_COLOR)
                 Spacer(Modifier.height(16.dp))
-                Text(errorMessage!!, color = MaterialTheme.colors.error)
-                Spacer(Modifier.height(8.dp))
-                Button(
-                    onClick = { retryKey++ },
-                    colors = ButtonDefaults.buttonColors(containerColor = STOP_BUTTON_COLOR)
-                ) { Text("Retry") }
-            }
-
-            Spacer(Modifier.height(16.dp))
-            Button(
-                onClick = onClose,
-                enabled = done,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ADD_BUTTON_COLOR
+                LinearProgressIndicator(
+                    progress = progress.toFloat(),
+                    color = PROGRESS_BAR_COLOR,
+                    backgroundColor = PROGRESS_BAR_BACKGROUND_COLOR
                 )
-            ) { Text("Close") }
+
+                if (errorMessage != null) {
+                    Spacer(Modifier.height(16.dp))
+                    Text(errorMessage!!, color = MaterialTheme.colors.error)
+                    Spacer(Modifier.height(8.dp))
+                    Button(
+                        onClick = { retryKey++ },
+                        colors = ButtonDefaults.buttonColors(containerColor = STOP_BUTTON_COLOR)
+                    ) { Text("Retry") }
+                }
+
+                Spacer(Modifier.height(16.dp))
+                Button(
+                    onClick = onClose.also {
+                        window.dispose()
+                    },
+                    enabled = done,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ADD_BUTTON_COLOR
+                    )
+                ) { Text("Close") }
+            }
         }
     }
 }

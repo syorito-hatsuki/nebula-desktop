@@ -1,4 +1,4 @@
-package dev.syoritohatsuki.nebuladesktop.ui.main
+package dev.syoritohatsuki.nebuladesktop.ui.window.main
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.text.AnnotatedString

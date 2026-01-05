@@ -22,7 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kdroid.composetray.tray.api.Tray
 import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection.ConnectionStatus
 import dev.syoritohatsuki.nebuladesktop.runOnSwing
-import dev.syoritohatsuki.nebuladesktop.ui.main.MainWindowViewModel
+import dev.syoritohatsuki.nebuladesktop.ui.window.main.MainWindowViewModel
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +30,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 @Composable
-fun ApplicationScope.MainTray(mainWindowViewModel: MainWindowViewModel = viewModel(), openWindow: () -> Unit) {
+fun ApplicationScope.MainTray(renderTray: Boolean, mainWindowViewModel: MainWindowViewModel = viewModel(), openWindow: () -> Unit) {
+    if (!renderTray) return
 
     val scope = rememberCoroutineScope()
 
