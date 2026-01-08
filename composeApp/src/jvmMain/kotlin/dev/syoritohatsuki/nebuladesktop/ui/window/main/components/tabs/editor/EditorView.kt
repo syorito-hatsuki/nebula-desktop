@@ -28,7 +28,7 @@ fun EditorView(configPath: Path) {
         Column {
             YamlEditor(yamlEditorViewModel, Modifier.weight(1f))
             Divider(color = Color.DarkGray)
-            LintPanel(emptyList())
+            LintPanel(yamlEditorViewModel)
         }
     }
 }

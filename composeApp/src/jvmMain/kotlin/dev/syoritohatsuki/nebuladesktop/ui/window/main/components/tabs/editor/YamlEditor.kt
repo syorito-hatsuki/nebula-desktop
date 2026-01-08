@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.sp
 import dev.syoritohatsuki.nebuladesktop.ui.TEXT_COLOR_SECONDARY
 import dev.syoritohatsuki.nebuladesktop.util.editor.YamlHighlightTransformation
 
-
 @Composable
 fun YamlEditor(yamlEditorViewModel: YamlEditorViewModel, modifier: Modifier = Modifier) {
     val text by yamlEditorViewModel.text.collectAsState()

@@ -1,11 +1,14 @@
 package dev.syoritohatsuki.nebuladesktop.util.editor
 
-import dev.syoritohatsuki.nebuladesktop.dto.YamlToken
-import dev.syoritohatsuki.nebuladesktop.dto.YamlTokenType
+import dev.syoritohatsuki.nebuladesktop.dto.LexResult
+import dev.syoritohatsuki.nebuladesktop.dto.LexResult.YamlToken
+import dev.syoritohatsuki.nebuladesktop.dto.LexResult.YamlToken.YamlTokenType
 
 object YamlLexer {
-    fun lex(text: String): List<YamlToken> {
+
+    fun lex(text: String): LexResult {
         val tokens = mutableListOf<YamlToken>()
+        val errors = mutableListOf<LexResult.LintError>()
         var i = 0
 
         while (i < text.length) {
@@ -22,11 +25,20 @@ object YamlLexer {
 
                 c == '"' || c == '\'' -> {
                     val start = i++
-                    while (i < text.length && text[i] != c) {
-                        if (text[i] == '\\') i++ // escape
+                    var closed = false
+                    while (i < text.length) {
+                        if (text[i] == c) {
+                            closed = true
+                            i++
+                            break
+                        }
+                        if (text[i] == '\\') i++
                         i++
                     }
-                    if (i < text.length) i++
+                    if (!closed) {
+                        val (line, col) = offsetToLineColumn(text, start)
+                        errors += LexResult.LintError("Unterminated string", line, col, LexResult.LintError.Severity.ERROR)
+                    }
                     tokens += YamlToken(start, i, YamlTokenType.STRING)
                 }
 
@@ -53,18 +65,28 @@ object YamlLexer {
 
                 else -> {
                     val start = i
-                    while (i < text.length && !text[i].isWhitespace() && text[i] !in ":#{}[],") i++
+                    while (
+                        i < text.length &&
+                        !text[i].isWhitespace() &&
+                        text[i] !in ":#{}[],"
+                    ) i++
 
-                    if (i < text.length && text[i] == ':') {
-                        tokens += YamlToken(start, i, YamlTokenType.KEY)
+                    tokens += if (i < text.length && text[i] == ':') {
+                        YamlToken(start, i, YamlTokenType.KEY)
                     } else {
-                        tokens += YamlToken(start, i, YamlTokenType.PLAIN)
+                        YamlToken(start, i, YamlTokenType.PLAIN)
                     }
                 }
             }
         }
-        return tokens
+
+        return LexResult(tokens, errors)
     }
 
     private fun isWordEnd(text: String, index: Int): Boolean = index >= text.length || !text[index].isLetterOrDigit()
+
+    private fun offsetToLineColumn(text: String, offset: Int): Pair<Int, Int> {
+        val lines = text.substring(0, offset).lines()
+        return lines.size to (lines.lastOrNull()?.length ?: 0)
+    }
 }

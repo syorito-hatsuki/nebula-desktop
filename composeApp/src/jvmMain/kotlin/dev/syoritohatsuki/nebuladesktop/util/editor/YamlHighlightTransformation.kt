@@ -4,12 +4,10 @@ import androidx.compose.foundation.text.input.OutputTransformation
 import androidx.compose.foundation.text.input.TextFieldBuffer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
-import dev.syoritohatsuki.nebuladesktop.dto.YamlToken
-import dev.syoritohatsuki.nebuladesktop.dto.YamlTokenType
+import dev.syoritohatsuki.nebuladesktop.dto.LexResult.YamlToken
+import dev.syoritohatsuki.nebuladesktop.dto.LexResult.YamlToken.YamlTokenType
 
-class YamlHighlightTransformation(
-    private val tokens: List<YamlToken>
-) : OutputTransformation {
+class YamlHighlightTransformation(private val tokens: List<YamlToken>) : OutputTransformation {
 
     override fun TextFieldBuffer.transformOutput() {
         tokens.sortedBy { it.start }.forEach { token ->

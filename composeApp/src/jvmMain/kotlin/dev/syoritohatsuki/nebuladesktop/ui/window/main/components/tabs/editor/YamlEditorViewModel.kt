@@ -2,7 +2,7 @@ package dev.syoritohatsuki.nebuladesktop.ui.window.main.components.tabs.editor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.syoritohatsuki.nebuladesktop.dto.YamlToken
+import dev.syoritohatsuki.nebuladesktop.dto.LexResult
 import dev.syoritohatsuki.nebuladesktop.util.editor.YamlLexer
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +17,12 @@ class YamlEditorViewModel(configPath: Path) : ViewModel() {
     private val _text = MutableStateFlow(configPath.readText())
     val text: StateFlow<String> = _text
 
-    private val _tokens = MutableStateFlow<List<YamlToken>>(emptyList())
-    val tokens: StateFlow<List<YamlToken>> = _tokens
+    private val _tokens = MutableStateFlow<List<LexResult.YamlToken>>(emptyList())
+    val tokens: StateFlow<List<LexResult.YamlToken>> = _tokens
+
+    private val _errors = MutableStateFlow<List<LexResult.LintError>>(emptyList())
+    val errors: StateFlow<List<LexResult.LintError>> = _errors
+
 
     fun onTextChange(newText: String) {
         _text.value = newText
@@ -28,10 +32,23 @@ class YamlEditorViewModel(configPath: Path) : ViewModel() {
         viewModelScope.launch {
             _text.mapLatest {
                 withContext(Dispatchers.Default) {
-                    runCatching { YamlLexer.lex(it) }.getOrDefault(emptyList())
+                    val result = runCatching {
+                        YamlLexer.lex(it)
+                    }.getOrElse { exception ->
+                        listOf(
+                            LexResult.LintError(
+                                message = exception.message ?: "Impossible error",
+                                line = null,
+                                column = null,
+                                severity = LexResult.LintError.Severity.ERROR
+                            )
+                        ).let { lintErrors -> return@withContext LexResult(emptyList(), lintErrors) }
+                    }
+                    result
                 }
-            }.collect {
-                _tokens.value = it
+            }.collect { result ->
+                _tokens.value = result.tokens
+                _errors.value = result.errors
             }
         }
     }
