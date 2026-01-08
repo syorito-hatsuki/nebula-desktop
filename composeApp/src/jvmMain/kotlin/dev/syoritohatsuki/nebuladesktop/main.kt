@@ -26,7 +26,7 @@ fun main() = application {
     System.setProperty("apple.awt.application.appearance", "system")
 
     var mainWindowRef by remember { mutableStateOf<ComposeWindow?>(null) }
-    var isMainWindowVisible by remember { mutableStateOf(false) }
+    var isMainWindowVisible by remember { mutableStateOf(true) }
     var showTray by remember { mutableStateOf(false) }
 
     val mainWindowViewModel = remember { MainWindowViewModel }
