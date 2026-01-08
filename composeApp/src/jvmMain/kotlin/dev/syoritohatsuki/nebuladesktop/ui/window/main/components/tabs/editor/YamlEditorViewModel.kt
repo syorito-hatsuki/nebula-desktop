@@ -3,11 +3,11 @@ package dev.syoritohatsuki.nebuladesktop.ui.window.main.components.tabs.editor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.syoritohatsuki.nebuladesktop.dto.YamlToken
-import dev.syoritohatsuki.nebuladesktop.util.editor.YamlTokenizer
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import dev.syoritohatsuki.nebuladesktop.util.editor.YamlLexer
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.mapLatest
 import java.nio.file.Path
 import kotlin.io.path.readText
 
@@ -26,10 +26,10 @@ class YamlEditorViewModel(configPath: Path) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            _text.debounce(300).distinctUntilChanged().mapLatest {
-                runCatching {
-                    YamlTokenizer.tokenize(it)
-                }.getOrDefault(emptyList())
+            _text.mapLatest {
+                withContext(Dispatchers.Default) {
+                    runCatching { YamlLexer.lex(it) }.getOrDefault(emptyList())
+                }
             }.collect {
                 _tokens.value = it
             }
