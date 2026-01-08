@@ -61,6 +61,8 @@ kotlin {
                 implementation(libs.commons.compress)
 
                 implementation(libs.pty4j)
+
+                implementation(libs.snakeyaml.engine)
             }
         }
     }
