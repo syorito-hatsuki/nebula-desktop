@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.syoritohatsuki.nebuladesktop.ui.TEXT_COLOR_SECONDARY
 import dev.syoritohatsuki.nebuladesktop.util.editor.YamlHighlightTransformation
+import dev.syoritohatsuki.nebuladesktop.util.editor.YamlTabTransformation
 
 @Composable
 fun YamlEditor(yamlEditorViewModel: YamlEditorViewModel, modifier: Modifier = Modifier) {
@@ -37,6 +38,7 @@ fun YamlEditor(yamlEditorViewModel: YamlEditorViewModel, modifier: Modifier = Mo
         ),
         cursorBrush = SolidColor(Color.White),
         outputTransformation = transformation,
+        inputTransformation = YamlTabTransformation,
         scrollState = rememberScrollState()
     )
 }

@@ -23,8 +23,6 @@ fun LintPanel(yamlEditorViewModel: YamlEditorViewModel) {
         errors.forEach {
             Text(
                 text = buildString {
-                    append(it.severity)
-                    append(": ")
                     append(it.message)
                     it.line?.let { l -> append(" (Ln $l,") }
                     it.column?.let { l -> append(" Col $l)") }

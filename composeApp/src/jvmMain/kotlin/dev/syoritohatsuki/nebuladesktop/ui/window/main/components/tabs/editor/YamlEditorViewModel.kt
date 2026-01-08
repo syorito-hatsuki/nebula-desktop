@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.syoritohatsuki.nebuladesktop.dto.LexResult
 import dev.syoritohatsuki.nebuladesktop.util.editor.YamlLexer
+import dev.syoritohatsuki.nebuladesktop.util.editor.YamlSchemaValidator
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,25 +31,15 @@ class YamlEditorViewModel(configPath: Path) : ViewModel() {
 
     init {
         viewModelScope.launch {
-            _text.mapLatest {
+            _text.mapLatest { text ->
                 withContext(Dispatchers.Default) {
-                    val result = runCatching {
-                        YamlLexer.lex(it)
-                    }.getOrElse { exception ->
-                        listOf(
-                            LexResult.LintError(
-                                message = exception.message ?: "Impossible error",
-                                line = null,
-                                column = null,
-                                severity = LexResult.LintError.Severity.ERROR
-                            )
-                        ).let { lintErrors -> return@withContext LexResult(emptyList(), lintErrors) }
-                    }
-                    result
+                    val lex = YamlLexer.lex(text)
+                    val schema = YamlSchemaValidator.validate(text)
+                    lex.tokens to (lex.errors + schema)
                 }
-            }.collect { result ->
-                _tokens.value = result.tokens
-                _errors.value = result.errors
+            }.collect { (tokens, errors) ->
+                _tokens.value = tokens
+                _errors.value = errors
             }
         }
     }
