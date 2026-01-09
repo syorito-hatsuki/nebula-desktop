@@ -20,7 +20,7 @@ object YamlSchemaValidator {
             composer.composeString(text).getOrNull() ?: return emptyList()
         } catch (e: YamlEngineException) {
             errors += LexResult.LintError(
-                e.message ?: "YAML parse error", 0, 0, LexResult.LintError.Severity.ERROR
+                e.message ?: "YAML parse error", null, null, LexResult.LintError.Severity.ERROR
             )
             return errors
         }
@@ -79,7 +79,7 @@ object YamlSchemaValidator {
     }
 
     private fun validateRequiredKeys(root: MappingNode, errors: MutableList<LexResult.LintError>) {
-        val required = setOf("pki", "lighthouse", "listen", "firewall", "tun")
+        val required = setOf("pki", "lighthouse", "static_host_map")
         val existing = root.value.mapNotNull { it.keyNode as? ScalarNode }.map { it.value }.toSet()
 
         for (key in required) {
