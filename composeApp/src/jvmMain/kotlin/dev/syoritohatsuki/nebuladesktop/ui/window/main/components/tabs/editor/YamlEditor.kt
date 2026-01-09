@@ -1,6 +1,5 @@
 package dev.syoritohatsuki.nebuladesktop.ui.window.main.components.tabs.editor
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -32,7 +31,7 @@ fun YamlEditor(yamlEditorViewModel: YamlEditorViewModel, modifier: Modifier = Mo
 
     BasicTextField(
         state = state,
-        modifier = modifier.fillMaxSize().background(Color(0xFF1E1E1E)).padding(12.dp),
+        modifier = modifier.fillMaxSize().padding(12.dp),
         textStyle = TextStyle(
             fontFamily = FontFamily.Monospace, fontSize = 14.sp, color = TEXT_COLOR_SECONDARY
         ),

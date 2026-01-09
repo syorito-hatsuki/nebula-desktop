@@ -16,7 +16,7 @@ import dev.syoritohatsuki.nebuladesktop.ui.START_BUTTON_COLOR
 import dev.syoritohatsuki.nebuladesktop.ui.STOP_BUTTON_COLOR
 
 @Composable
-fun LintPanel(yamlEditorViewModel: YamlEditorViewModel) {
+fun StatusBar(yamlEditorViewModel: YamlEditorViewModel) {
     val errors by yamlEditorViewModel.errors.collectAsState()
 
     Row(modifier = Modifier.fillMaxWidth().background(Color(0xFF252526)).padding(8.dp)) {
@@ -25,7 +25,7 @@ fun LintPanel(yamlEditorViewModel: YamlEditorViewModel) {
         errors.forEach {
             Text(
                 text = buildString {
-                    append(it.message)
+                    append(it.message.trimEnd())
                     if (it.column != null || it.line != null) {
                         append(" (")
                         it.line?.let { l -> append("Ln $l,") }
