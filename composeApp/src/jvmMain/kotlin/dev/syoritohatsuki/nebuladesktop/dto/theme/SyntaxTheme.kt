@@ -16,4 +16,6 @@ data class SyntaxTheme(
     @Serializable(with = ColorAsHexSerializer::class) val boolean: Color = CARROT,
     @Serializable(with = ColorAsHexSerializer::class) val flow: Color = CARROT,
     @Serializable(with = ColorAsHexSerializer::class) val comment: Color = ASBESTOS,
+    @Serializable(with = ColorAsHexSerializer::class) val operator: Color = Color(0xFFFF0000),
+    @Serializable(with = ColorAsHexSerializer::class) val keyword: Color = Color(0xFF00FF00),
 )

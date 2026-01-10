@@ -4,10 +4,20 @@ data class LexResult(
     val tokens: List<YamlToken>, val errors: List<LintError>
 ) {
     data class YamlToken(
-        val start: Int, val end: Int, val type: YamlTokenType
+        val start: Int, val end: Int, var scope: YamlScope
     ) {
-        enum class YamlTokenType {
-            KEY, STRING, NUMBER, BOOLEAN, COMMENT, BLOCK_SCALAR, PLAIN, FLOW
+        enum class YamlScope {
+            MAPPING_KEY, MAPPING_SEPARATOR,
+
+            SEQUENCE_INDICATOR,
+
+            SCALAR_PLAIN, SCALAR_QUOTED_SINGLE, SCALAR_QUOTED_DOUBLE, SCALAR_BLOCK_INDICATOR, SCALAR_BLOCK_CONTENT,
+
+            NUMBER, BOOLEAN,
+
+            FLOW_PUNCTUATION,
+
+            COMMENT
         }
     }
 
