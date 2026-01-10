@@ -1,6 +1,5 @@
 package dev.syoritohatsuki.nebuladesktop.ui.window.main.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
@@ -29,7 +28,7 @@ fun ConnectionOptionsMenu(onRemove: () -> Unit) {
             expanded = expanded,
             onDismissRequest = { expanded = false },
             offset = DpOffset(x = 0.dp, y = 4.dp),
-            modifier = Modifier.background(CARD_BACKGROUND_COLOR)
+            containerColor = CARD_BACKGROUND_COLOR
         ) {
             DropdownMenuItem(text = { Text("Remove", color = STOP_BUTTON_COLOR) }, onClick = {
                 expanded = false
