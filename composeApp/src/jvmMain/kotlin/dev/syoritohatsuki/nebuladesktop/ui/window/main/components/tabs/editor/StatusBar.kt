@@ -8,10 +8,12 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.syoritohatsuki.nebuladesktop.dto.LexResult
+import dev.syoritohatsuki.nebuladesktop.ui.LOGS_BACKGROUND_COLOR
 import dev.syoritohatsuki.nebuladesktop.ui.START_BUTTON_COLOR
 import dev.syoritohatsuki.nebuladesktop.ui.STOP_BUTTON_COLOR
 
@@ -19,24 +21,32 @@ import dev.syoritohatsuki.nebuladesktop.ui.STOP_BUTTON_COLOR
 fun StatusBar(yamlEditorViewModel: YamlEditorViewModel) {
     val errors by yamlEditorViewModel.errors.collectAsState()
 
-    Row(modifier = Modifier.fillMaxWidth().background(Color(0xFF252526)).padding(8.dp)) {
-        if (errors.isEmpty()) Text("No issues", color = START_BUTTON_COLOR)
+    Row(modifier = Modifier.fillMaxWidth().background(Color(0xFF252526))) {
+        Row(modifier = Modifier.background(Color(0xFF252526)).padding(8.dp).weight(1f)) {
+            if (errors.isEmpty()) Text("No issues", color = START_BUTTON_COLOR)
 
-        errors.forEach {
-            Text(
-                text = buildString {
-                    append(it.message.trimEnd())
-                    if (it.column != null || it.line != null) {
-                        append(" (")
-                        it.line?.let { l -> append("Ln $l,") }
-                        it.column?.let { l -> append(" Col $l") }
-                        append(")")
+            errors.forEach {
+                Text(
+                    text = buildString {
+                        append(it.message.trimEnd())
+                        if (it.column != null || it.line != null) {
+                            append(" (")
+                            it.line?.let { l -> append("Ln $l,") }
+                            it.column?.let { l -> append(" Col $l") }
+                            append(")")
+                        }
+                    }, color = when (it.severity) {
+                        LexResult.LintError.Severity.ERROR -> STOP_BUTTON_COLOR
+                        else -> START_BUTTON_COLOR
                     }
-                }, color = when (it.severity) {
-                    LexResult.LintError.Severity.ERROR -> STOP_BUTTON_COLOR
-                    else -> START_BUTTON_COLOR
-                }
-            )
+                )
+            }
         }
+
+        ThemeSelector(
+            modifier = Modifier.align(Alignment.Bottom).background(LOGS_BACKGROUND_COLOR),
+            options = listOf("Default", "Dark", "Light"),
+            selected = "Default"
+        ) {}
     }
 }
