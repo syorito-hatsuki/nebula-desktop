@@ -14,8 +14,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.syoritohatsuki.nebuladesktop.ui.TEXT_COLOR_SECONDARY
-import dev.syoritohatsuki.nebuladesktop.util.editor.YamlHighlightTransformation
-import dev.syoritohatsuki.nebuladesktop.util.editor.YamlTabTransformation
+import dev.syoritohatsuki.nebuladesktop.util.editor.YamlEditorTransformers
 
 @Composable
 fun YamlEditor(yamlEditorViewModel: YamlEditorViewModel, modifier: Modifier = Modifier) {
@@ -23,7 +22,7 @@ fun YamlEditor(yamlEditorViewModel: YamlEditorViewModel, modifier: Modifier = Mo
     val tokens by yamlEditorViewModel.tokens.collectAsState()
 
     val state = remember { TextFieldState(text) }
-    val transformation = remember(tokens) { YamlHighlightTransformation(tokens) }
+    val transformation = remember(tokens) { YamlEditorTransformers.getYamlOutputTransformation(tokens) }
 
     LaunchedEffect(Unit) {
         snapshotFlow { state.text }.collect { yamlEditorViewModel.onTextChange(it as String) }
@@ -37,7 +36,7 @@ fun YamlEditor(yamlEditorViewModel: YamlEditorViewModel, modifier: Modifier = Mo
         ),
         cursorBrush = SolidColor(Color.White),
         outputTransformation = transformation,
-        inputTransformation = YamlTabTransformation,
+        inputTransformation = YamlEditorTransformers.getYamlInputTransformation(),
         scrollState = rememberScrollState()
     )
 }
