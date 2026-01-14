@@ -32,12 +32,12 @@ fun ConnectionEntry(
     selectedConnection: NebulaConnection?,
     onSelected: (String) -> Unit
 ) {
-    val statusFlow = statusFlows[connection.name]
+    val statusFlow = statusFlows[connection.uuid]
     val status by (statusFlow ?: MutableStateFlow(ConnectionStatus.DISABLED)).collectAsState()
 
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clip(RoundedCornerShape(12.dp))
-            .clickable { onSelected(connection.name) }, colors = CardDefaults.cardColors(
+            .clickable { onSelected(connection.uuid) }, colors = CardDefaults.cardColors(
             containerColor = when {
                 selectedConnection == connection -> CARD_SELECTED_BACKGROUND_COLOR
                 else -> CARD_BACKGROUND_COLOR

@@ -31,7 +31,7 @@ object MainWindowViewModel : ViewModel() {
     init {
         viewModelScope.launch {
             connections.collectLatest { list ->
-                _statusFlows.value = list.associate { it.name to it.status }
+                _statusFlows.value = list.associate { it.uuid to it.status }
             }
         }
     }
@@ -43,15 +43,15 @@ object MainWindowViewModel : ViewModel() {
     fun addConnection(configFile: File): Boolean = manager.addConnection(configFile)
 
     fun observeLogs(connection: NebulaConnection) {
-        if (observingConnection == connection.name) return
+        if (observingConnection == connection.uuid) return
         logsJob?.cancel()
-        observingConnection = connection.name
+        observingConnection = connection.uuid
         logsJob = viewModelScope.launch {
             connection.logs.collectLatest { line ->
                 if (logLines.isEmpty() || logLines.firstOrNull() != line) {
                     logLines.add(0, line)
                     if (logLines.size > 1000) logLines.removeLast()
-                    logCache[connection.name] = logLines.toList()
+                    logCache[connection.uuid] = logLines.toList()
                 }
             }
         }
@@ -59,6 +59,6 @@ object MainWindowViewModel : ViewModel() {
 
     fun preloadLogs(connection: NebulaConnection) {
         logLines.clear()
-        logCache[connection.name]?.forEach { logLines.add(it) }
+        logCache[connection.uuid]?.forEach { logLines.add(it) }
     }
 }

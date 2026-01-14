@@ -22,7 +22,7 @@ fun ConnectButton(
     connection: NebulaConnection,
     statusFlows: Map<String, StateFlow<ConnectionStatus>>
 ) {
-    val statusFlow = statusFlows[connection.name]
+    val statusFlow = statusFlows[connection.uuid]
     val status by (statusFlow ?: MutableStateFlow(ConnectionStatus.DISABLED)).collectAsState()
 
     when (status) {

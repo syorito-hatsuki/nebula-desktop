@@ -38,15 +38,15 @@ fun ApplicationScope.MainTray(renderTray: Boolean, mainWindowViewModel: MainWind
     val connections by mainWindowViewModel.connections.collectAsState()
     val statusFlows by mainWindowViewModel.statusFlows.collectAsState()
 
-    val isEnabledByName: Map<String, Boolean> = connections.associate { conn ->
+    val isEnabledByUuid: Map<String, Boolean> = connections.associate { conn ->
         val flow: StateFlow<ConnectionStatus> =
-            statusFlows[conn.name] ?: MutableStateFlow(ConnectionStatus.DISABLED)
+            statusFlows[conn.uuid] ?: MutableStateFlow(ConnectionStatus.DISABLED)
         val status by flow.collectAsState()
-        conn.name to (status == ConnectionStatus.ENABLED)
+        conn.uuid to (status == ConnectionStatus.ENABLED)
     }
 
-    val anyConnected = isEnabledByName.values.any { it }
-    val activeCount = isEnabledByName.values.count { it }
+    val anyConnected = isEnabledByUuid.values.any { it }
+    val activeCount = isEnabledByUuid.values.count { it }
 
     val filePicker = rememberFilePickerLauncher(
         title = "Select Nebula Config", type = FileKitType.File(extensions = listOf("yml", "yaml"))
@@ -85,7 +85,7 @@ fun ApplicationScope.MainTray(renderTray: Boolean, mainWindowViewModel: MainWind
         connections.forEach { conn ->
             CheckableItem(
                 label = conn.name,
-                checked = isEnabledByName[conn.name] == true,
+                checked = isEnabledByUuid[conn.uuid] == true,
                 onCheckedChange = { isChecked ->
                     when {
                         isChecked -> mainWindowViewModel.startConnection(conn.configPath)

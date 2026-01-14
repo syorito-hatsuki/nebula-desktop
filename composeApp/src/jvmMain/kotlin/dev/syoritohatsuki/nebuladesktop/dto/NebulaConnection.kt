@@ -5,18 +5,19 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import java.nio.file.Path
+import java.util.*
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class NebulaConnection(
+    @EncodeDefault val uuid: String = UUID.randomUUID().toString(),
     val name: String,
     @Serializable(with = PathAsStringSerializer::class)
     val configPath: Path,

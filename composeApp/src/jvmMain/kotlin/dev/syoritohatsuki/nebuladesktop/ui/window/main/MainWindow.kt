@@ -39,13 +39,13 @@ fun MainWindow(
     val connections by mainWindowViewModel.connections.collectAsState()
     val statusFlows by mainWindowViewModel.statusFlows.collectAsState()
 
-    var selectedName by remember { mutableStateOf<String?>(null) }
+    var selectedUuid by remember { mutableStateOf<String?>(null) }
 
-    val selectedConnection = remember(connections, selectedName) {
-        connections.firstOrNull { it.name == selectedName }
+    val selectedConnection = remember(connections, selectedUuid) {
+        connections.firstOrNull { it.uuid == selectedUuid }
     }
 
-    LaunchedEffect(selectedConnection?.name) {
+    LaunchedEffect(selectedConnection?.uuid) {
         selectedConnection?.let {
             mainWindowViewModel.preloadLogs(it)
             mainWindowViewModel.observeLogs(it)
@@ -66,7 +66,7 @@ fun MainWindow(
 
         Row(modifier = Modifier.fillMaxSize()) {
             LeftPanel(mainWindowViewModel, connections, statusFlows, selectedConnection) {
-                selectedName = it
+                selectedUuid = it
             }
 
             Box(modifier = Modifier.fillMaxHeight().fillMaxWidth().background(BACKGROUND_COLOR).padding(16.dp)) {
