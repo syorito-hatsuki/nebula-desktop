@@ -20,14 +20,22 @@ object NebulaUnix : NebulaProcess {
             process.destroyForcibly()
             if (process.waitFor(250, TimeUnit.MILLISECONDS)) return true
 
-            try {
-                ProcessBuilder(*getStopCommandByOS(process.pid()))
-                    .redirectErrorStream(true)
-                    .start()
-            } catch (_: Exception) {}
+            val killer = ProcessBuilder(*getStopCommandByOS(process.pid()))
+                .redirectErrorStream(true)
+                .start()
 
-            true
-        } catch (_: Exception) {
+            val exited = killer.waitFor(30, TimeUnit.SECONDS)
+            if (!exited || killer.exitValue() != 0) {
+                return false
+            }
+
+            val deadline = System.currentTimeMillis() + 3000
+            while (process.isAlive && System.currentTimeMillis() < deadline) {
+                Thread.sleep(100)
+            }
+
+            !process.isAlive
+        } catch (e: Exception) {
             false
         }
     }
