@@ -29,6 +29,7 @@ fun YamlEditor(yamlEditorViewModel: YamlEditorViewModel, modifier: Modifier = Mo
     }
 
     BasicTextField(
+        readOnly = true,
         state = state,
         modifier = modifier.fillMaxSize().padding(12.dp),
         textStyle = TextStyle(
