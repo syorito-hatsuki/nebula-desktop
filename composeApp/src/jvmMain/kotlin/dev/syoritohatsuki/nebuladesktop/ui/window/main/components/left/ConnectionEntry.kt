@@ -67,6 +67,7 @@ fun ConnectionEntry(
                         ConnectionStatus.DISABLED -> DISABLED_ICON_COLOR
                         ConnectionStatus.STOPPING -> AWAIT_ICON_COLOR
                         ConnectionStatus.STARTING -> AWAIT_ICON_COLOR
+                        ConnectionStatus.DELETING -> AWAIT_ICON_COLOR
                     }
                 )
             }

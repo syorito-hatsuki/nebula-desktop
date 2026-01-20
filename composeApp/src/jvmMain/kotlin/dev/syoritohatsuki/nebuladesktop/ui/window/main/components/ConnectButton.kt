@@ -47,5 +47,12 @@ fun ConnectButton(
             onClick = {},
             colors = ButtonDefaults.buttonColors(disabledContainerColor = AWAIT_BUTTON_COLOR)
         ) { Text("Stopping…", color = TEXT_COLOR) }
+
+        ConnectionStatus.DELETING -> Button(
+            enabled = false,
+            onClick = {},
+            colors = ButtonDefaults.buttonColors(disabledContainerColor = AWAIT_BUTTON_COLOR)
+        ) { Text("Deleting…", color = TEXT_COLOR) }
+
     }
 }
