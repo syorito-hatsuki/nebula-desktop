@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection
 import dev.syoritohatsuki.nebuladesktop.dto.NebulaConnection.ConnectionStatus
 import dev.syoritohatsuki.nebuladesktop.ui.*
@@ -54,13 +53,6 @@ fun ConnectionEntry(
                     text = connection.name,
                     color = TEXT_COLOR,
                     fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = connection.configPath.toString(),
-                    color = TEXT_COLOR_SECONDARY,
-                    fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
