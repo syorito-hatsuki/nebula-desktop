@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.syoritohatsuki.nebuladesktop.dto.LexResult
+import dev.syoritohatsuki.nebuladesktop.ui.AWAIT_BUTTON_COLOR
 import dev.syoritohatsuki.nebuladesktop.ui.LOGS_BACKGROUND_COLOR
 import dev.syoritohatsuki.nebuladesktop.ui.START_BUTTON_COLOR
 import dev.syoritohatsuki.nebuladesktop.ui.STOP_BUTTON_COLOR
@@ -23,6 +24,8 @@ fun StatusBar(yamlEditorViewModel: YamlEditorViewModel) {
 
     Row(modifier = Modifier.fillMaxWidth().background(Color(0xFF252526))) {
         Row(modifier = Modifier.background(Color(0xFF252526)).padding(8.dp).weight(1f)) {
+            Text("Editor Work in Progress :)", color = AWAIT_BUTTON_COLOR)
+            Text(" | ", color = Color.White)
             if (errors.isEmpty()) Text("No issues", color = START_BUTTON_COLOR)
 
             errors.forEach {
