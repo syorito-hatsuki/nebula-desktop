@@ -74,22 +74,20 @@ fun MainWindow(
                     Column(modifier = Modifier.fillMaxSize()) {
                         ContainerHeader(mainWindowViewModel, connection, statusFlows)
 
-                        var selectedDestination by rememberSaveable { mutableStateOf(ContainerTabs.LOGS) }
+                        var selectedTab by rememberSaveable { mutableStateOf(ContainerTabs.LOGS) }
 
                         PrimaryScrollableTabRow(
-                            selectedTabIndex = selectedDestination.ordinal,
+                            selectedTabIndex = selectedTab.ordinal,
                             modifier = Modifier.padding(vertical = 8.dp),
                             edgePadding = 0.dp,
                             contentColor = Color.White,
                             containerColor = Color.Transparent,
                             divider = {}
                         ) {
-                            ContainerTabs.entries.forEachIndexed { index, tab ->
+                            ContainerTabs.entries.forEach { tab ->
                                 Tab(
-                                    selected = selectedDestination.ordinal == index,
-                                    onClick = {
-                                        selectedDestination = tab
-                                    },
+                                    selected = selectedTab == tab,
+                                    onClick = { selectedTab = tab },
                                     text = {
                                         Text(
                                             text = tab.name,
@@ -101,9 +99,16 @@ fun MainWindow(
                             }
                         }
 
-                        when (selectedDestination) {
-                            ContainerTabs.LOGS -> LogsView(mainWindowViewModel.logLines)
-                            ContainerTabs.EDITOR -> EditorView(connection.configPath)
+                        selectedConnection.let { connection ->
+                            key(connection.uuid) {
+                                when (selectedTab) {
+                                    ContainerTabs.LOGS ->
+                                        LogsView(mainWindowViewModel.logLines)
+
+                                    ContainerTabs.EDITOR ->
+                                        EditorView(connection.configPath)
+                                }
+                            }
                         }
                     }
                 } ?: Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

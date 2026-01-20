@@ -42,6 +42,9 @@ object MainWindowViewModel : ViewModel() {
 
     fun addConnection(configFile: File): Boolean = manager.addConnection(configFile)
 
+    suspend fun deleteConnection(uuid: String): Boolean = manager.deleteConnection(uuid)
+
+
     fun observeLogs(connection: NebulaConnection) {
         if (observingConnection == connection.uuid) return
         logsJob?.cancel()
@@ -61,4 +64,6 @@ object MainWindowViewModel : ViewModel() {
         logLines.clear()
         logCache[connection.uuid]?.forEach { logLines.add(it) }
     }
+
+    fun updateConnectionName(uuid: String, name: String) = manager.updateConnectionName(uuid, name)
 }

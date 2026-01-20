@@ -41,6 +41,56 @@ object NebulaManager {
         return true
     }
 
+    suspend fun deleteConnection(uuid: String): Boolean {
+        val conn = _connections.value.find { it.uuid == uuid } ?: return false
+
+        if (conn.status.value == NebulaConnection.ConnectionStatus.STARTING) {
+            conn.emitLog("Cannot delete while starting".toAnnotatedString())
+            return false
+        }
+
+        conn.setStatus(NebulaConnection.ConnectionStatus.DELETING)
+        emitListIdentity()
+
+        if (conn.process != null) {
+            val stopped = stopConnectionAndWait(conn)
+
+            if (!stopped) {
+                conn.setStatus(NebulaConnection.ConnectionStatus.ENABLED)
+                conn.emitLog(
+                    "Deletion canceled: authorization denied or process still running"
+                        .toAnnotatedString()
+                )
+                emitListIdentity()
+                return false
+            }
+        }
+
+        _connections.update { it - conn }
+        StorageManager.updateConnectionFile(_connections.value)
+        return true
+    }
+
+    private suspend fun stopConnectionAndWait(conn: NebulaConnection): Boolean {
+        val proc = conn.process ?: return true
+
+        conn.setStatus(NebulaConnection.ConnectionStatus.STOPPING)
+        emitListIdentity()
+
+        return withContext(Dispatchers.IO) {
+            val stopped = NebulaUnix.stop(proc)
+
+            if (!stopped) {
+                false
+            } else {
+                conn.process = null
+                conn.setStatus(NebulaConnection.ConnectionStatus.DISABLED)
+                emitListIdentity()
+                true
+            }
+        }
+    }
+
     fun startConnection(configFilePath: Path) {
         val conn = _connections.value.find { it.configPath.absolutePathString() == configFilePath.absolutePathString() }
             ?: return
@@ -131,8 +181,10 @@ object NebulaManager {
     }
 
     fun stopConnection(configFilePath: Path) {
-        val conn = _connections.value.find { it.configPath.absolutePathString() == configFilePath.absolutePathString() }
-            ?: return
+        val conn = _connections.value.find {
+            it.configPath.absolutePathString() == configFilePath.absolutePathString()
+        } ?: return
+
         val proc = conn.process ?: run {
             conn.setStatus(NebulaConnection.ConnectionStatus.DISABLED)
             emitListIdentity()
@@ -144,37 +196,52 @@ object NebulaManager {
             conn.setStatus(NebulaConnection.ConnectionStatus.STOPPING)
             emitListIdentity()
 
-            NebulaUnix.stop(proc)
-
-            launch {
-                proc.inputStream.bufferedReader().forEachLine {
-                    conn.emitLog(it.ansiToAnnotatedString())
-                }
+            val stopped = withContext(Dispatchers.IO) {
+                NebulaUnix.stop(proc)
             }
 
-            launch {
-                proc.errorStream.bufferedReader().forEachLine {
-                    conn.emitLog(it.ansiToAnnotatedString())
-                }
+            if (!stopped) {
+                conn.emitLog(
+                    "Stop canceled: authorization denied or process still running"
+                        .toAnnotatedString()
+                )
+                conn.setStatus(NebulaConnection.ConnectionStatus.ENABLED)
+                emitListIdentity()
+                return@launch
             }
 
-            val deadline = System.currentTimeMillis() + 15_000 // 15s safety
+            val deadline = System.currentTimeMillis() + 15_000
             while (proc.isAlive && System.currentTimeMillis() < deadline) {
                 delay(100)
             }
 
             if (proc.isAlive) {
-                conn.emitLog("Process did not exit in time; still running (pid=${proc.pid()}).".toAnnotatedString())
+                conn.emitLog(
+                    "Process did not exit in time; still running (pid=${proc.pid()})."
+                        .toAnnotatedString()
+                )
+                conn.setStatus(NebulaConnection.ConnectionStatus.ENABLED)
                 emitListIdentity()
                 return@launch
             }
 
-            conn.setStatus(NebulaConnection.ConnectionStatus.DISABLED)
             conn.process = null
+            conn.setStatus(NebulaConnection.ConnectionStatus.DISABLED)
             emitListIdentity()
         }
     }
 
+    fun updateConnectionName(uuid: String, newName: String) {
+        _connections.update { list ->
+            list.map { conn ->
+                if (conn.uuid == uuid) {
+                    conn.copy(name = newName)
+                } else conn
+            }
+        }
+
+        StorageManager.updateConnectionFile(_connections.value)
+    }
 
     private fun emitListIdentity() {
         _connections.update { it.toList() }

@@ -19,8 +19,7 @@ import java.util.*
 data class NebulaConnection(
     @EncodeDefault val uuid: String = UUID.randomUUID().toString(),
     val name: String,
-    @Serializable(with = PathAsStringSerializer::class)
-    val configPath: Path,
+    @Serializable(with = PathAsStringSerializer::class) val configPath: Path,
     @Transient private val _status: MutableStateFlow<ConnectionStatus> = MutableStateFlow(ConnectionStatus.DISABLED),
     @Transient private val _logs: MutableSharedFlow<AnnotatedString> = MutableSharedFlow(extraBufferCapacity = 1000),
     @Transient var process: Process? = null
@@ -39,7 +38,7 @@ data class NebulaConnection(
         _status.value = status
     }
 
-    enum class ConnectionStatus { STARTING, ENABLED, STOPPING, DISABLED }
+    enum class ConnectionStatus { STARTING, ENABLED, STOPPING, DELETING, DISABLED }
 
     object PathAsStringSerializer : KSerializer<Path> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Path", PrimitiveKind.STRING)
